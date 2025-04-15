@@ -3,13 +3,13 @@ export class Main extends Phaser.Scene {
       super('Main');
   }
 
-  preload() {
-  }
+    preload() {
+    }
 
-  create() {
-  }
+    create() {
+    }
 
-  update() {
-  }
+    update() {
+    }
 
 }
