@@ -1,6 +1,6 @@
 import { Start } from './scenes/Start.js';
 import { Menu } from './scenes/Menu.js';
-import { Main } from './scenes/Main.js';
+import { Battleground } from './scenes/Battleground.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -14,7 +14,7 @@ const config = {
     scene: [
         Start,
         Menu,
-        Main
+        Battleground
     ],
     scale: {
         mode: Phaser.Scale.FIT,
