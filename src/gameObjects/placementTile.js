@@ -10,12 +10,16 @@ export default class PlacementTile extends Phaser.GameObjects.Container {
         this.tileSprite = scene.add.sprite(0, 0, texture);
         this.add(this.tileSprite);
         
+        // Scale the sprite to fit within the tile bounds (50x50)
+        const scale = Math.min(50 / this.tileSprite.width, 50 / this.tileSprite.height);
+        this.tileSprite.setScale(scale);
+        
         // Store the callback
         this.callback = callback;
         
         // Make the container interactive
-        this.setSize(this.tileSprite.width, this.tileSprite.height);
-        this.setInteractive();
+        this.setSize(50, 50); // Fixed size for the container
+        this.setInteractive({ useHandCursor: true });
         
         // Add hover and press effects
         this.on('pointerover', () => {
@@ -51,6 +55,10 @@ export default class PlacementTile extends Phaser.GameObjects.Container {
         
         // Set the new texture
         this.tileSprite.setTexture(texture);
+        
+        // Scale the sprite to fit within the tile bounds
+        const scale = Math.min(50 / this.tileSprite.width, 50 / this.tileSprite.height);
+        this.tileSprite.setScale(scale);
         
         // If this is a spritesheet (like mageIdle), create and play the animation
         if (texture === 'mageIdle') {

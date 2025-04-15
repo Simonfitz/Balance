@@ -21,20 +21,33 @@ export class Battleground extends Phaser.Scene {
       // Set the background color to white
       this.cameras.main.setBackgroundColor('#ffffff');
       
-      // Create a grid of 10 tiles
-      const tileWidth = 100;
-      const tileHeight = 100;
+      const tileSize = 50;
       const padding = 20;
-      const startX = 100;
-      const startY = 100;
+      const screenCenterX = this.cameras.main.width / 2;
+      const screenCenterY = this.cameras.main.height / 2;
       
-      // Create 10 tiles in a 2x5 grid
-      for (let i = 0; i < 10; i++) {
-          const row = Math.floor(i / 5);
-          const col = i % 5;
+      // Create left group (5 tiles)
+      this.createTileGroup(0, 5, 100, screenCenterY, tileSize, padding, false);
+      
+      // Create right group (5 tiles)
+      this.createTileGroup(5, 10, this.cameras.main.width - 100, screenCenterY, tileSize, padding, true);
+  }
+
+  createTileGroup(startIndex, endIndex, centerX, centerY, tileSize, padding, isRightGroup) {
+      for (let i = startIndex; i < endIndex; i++) {
+          // Calculate position based on index within the group
+          const groupIndex = i - startIndex;
+          let x, y;
           
-          const x = startX + (tileWidth + padding) * col;
-          const y = startY + (tileHeight + padding) * row;
+          if (groupIndex < 3) {
+              // First column of 3
+              x = centerX + (isRightGroup ? tileSize + padding : 0);
+              y = centerY - tileSize - padding + (tileSize + padding) * groupIndex;
+          } else {
+              // Second column of 2, centered with the column of 3
+              x = centerX + (isRightGroup ? 0 : tileSize + padding);
+              y = centerY - (tileSize + padding) + (tileSize + padding) * (groupIndex - 3);
+          }
           
           // Initialize tile state
           this.tileStates[i] = 'empty';
@@ -54,15 +67,6 @@ export class Battleground extends Phaser.Scene {
           // Store the tile reference
           this[`tile${i}`] = tile;
       }
-
-      // Example: Change tile 0's state every 2 seconds
-      this.time.addEvent({
-          delay: 2000,
-          callback: () => {
-              this.toggleTileState(0);
-          },
-          loop: true
-      });
   }
 
   toggleTileState(tileIndex) {
