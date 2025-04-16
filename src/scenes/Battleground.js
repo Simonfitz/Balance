@@ -1,5 +1,6 @@
 import PlacementTile from '../gameObjects/placementTile.js';
 import Unit from '../gameObjects/unit.js';
+import { TILE } from '../constants.js';
 
 export class Battleground extends Phaser.Scene {
   constructor() {
@@ -21,9 +22,6 @@ export class Battleground extends Phaser.Scene {
   }
 
   create() {
-    const tileSize = 50;
-    const padding = 20;
-    const verticalOffset = 200;
     const screenCenterX = this.cameras.main.width / 2;
     const screenCenterY = this.cameras.main.height / 2;
 
@@ -38,45 +36,59 @@ export class Battleground extends Phaser.Scene {
     this.resizeToWindow(this.bar, 0.5);
 
     // Create left group (5 tiles)
-    this.createTileGroup(0, 5, 100, screenCenterY, tileSize, padding, verticalOffset, false);
+    this.createTileGroup({
+      startIndex: 0,
+      endIndex: 5,
+      baseX: 200, // Distance from left edge
+      centerY: screenCenterY,
+      tileSize: TILE.SIZE,
+      padding: TILE.PADDING,
+      verticalOffset: TILE.VERTICAL_OFFSET,
+      isRightGroup: false,
+    });
 
     // Create right group (5 tiles)
-    this.createTileGroup(
-      5,
-      10,
-      this.cameras.main.width - 100,
-      screenCenterY,
-      tileSize,
-      padding,
-      verticalOffset,
-      true
-    );
+    this.createTileGroup({
+      startIndex: 5,
+      endIndex: 10,
+      baseX: this.cameras.main.width - 200, // Distance from right edge
+      centerY: screenCenterY,
+      tileSize: TILE.SIZE,
+      padding: TILE.PADDING,
+      verticalOffset: TILE.VERTICAL_OFFSET,
+      isRightGroup: true,
+    });
   }
 
   update() {}
 
-  createTileGroup(
+  createTileGroup({
     startIndex,
     endIndex,
-    centerX,
+    baseX,
     centerY,
     tileSize,
     padding,
     verticalOffset,
-    isRightGroup
-  ) {
+    isRightGroup,
+  }) {
     for (let i = startIndex; i < endIndex; i++) {
       // Calculate position based on index within the group
       const groupIndex = i - startIndex;
       let x, y;
 
       if (groupIndex < 3) {
-        // First column of 3
-        x = centerX + (isRightGroup ? tileSize + padding : 0);
+        // First column of 3 tiles
+        // For right group, this is the right column
+        // For left group, this is the left column
+        x = isRightGroup ? baseX : baseX;
         y = centerY - tileSize - padding + (tileSize + padding) * groupIndex + verticalOffset;
       } else {
-        // Second column of 2, centered with the column of 3
-        x = centerX + (isRightGroup ? 0 : tileSize + padding);
+        // Second column of 2 tiles
+        // For right group, this is the left column
+        // For left group, this is the right column
+        x = isRightGroup ? baseX - tileSize - padding : baseX + tileSize + padding;
+
         // Center the column of 2 with the column of 3
         const column3Height = 3 * (tileSize + padding) - padding;
         const column2Height = 2 * (tileSize + padding) - padding;

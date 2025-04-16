@@ -1,3 +1,5 @@
+import { TILE } from '../constants.js';
+
 export default class PlacementTile extends Phaser.GameObjects.Container {
   constructor(scene, x, y, texture, frame, callback) {
     super(scene, x, y);
@@ -10,15 +12,15 @@ export default class PlacementTile extends Phaser.GameObjects.Container {
     this.tileSprite = scene.add.sprite(0, 0, texture);
     this.add(this.tileSprite);
 
-    // Scale the sprite to fit within the tile bounds (50x50)
-    const scale = Math.min(50 / this.tileSprite.width, 50 / this.tileSprite.height);
+    // Scale the sprite to fit within the tile bounds
+    const scale = Math.min(TILE.SIZE / this.tileSprite.width, TILE.SIZE / this.tileSprite.height);
     this.tileSprite.setScale(scale);
 
     // Store the callback
     this.callback = callback;
 
     // Make the container interactive
-    this.setSize(50, 50); // Fixed size for the container
+    this.setSize(TILE.SIZE, TILE.SIZE); // Fixed size for the container
     this.setInteractive({ useHandCursor: true });
 
     // Add hover and press effects
@@ -57,7 +59,7 @@ export default class PlacementTile extends Phaser.GameObjects.Container {
     this.tileSprite.setTexture(texture);
 
     // Scale the sprite to fit within the tile bounds
-    const scale = Math.min(50 / this.tileSprite.width, 50 / this.tileSprite.height);
+    const scale = Math.min(TILE.SIZE / this.tileSprite.width, TILE.SIZE / this.tileSprite.height);
     this.tileSprite.setScale(scale);
 
     // If this is a spritesheet (like mageIdle), create and play the animation
