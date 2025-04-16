@@ -1,15 +1,11 @@
 export class Menu extends Phaser.Scene {
   constructor() {
-      super('Menu');
+    super('Menu');
   }
 
-  preload() {
-  }
+  preload() {}
 
-  create() {
-  }
+  create() {}
 
-  update() {
-  }
-
+  update() {}
 }
