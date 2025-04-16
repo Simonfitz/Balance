@@ -15,6 +15,19 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._spawnX = x;
     this._spawnY = y;
 
+    // Create idle animation if it doesn't exist
+    // if (!scene.anims.exists('mageIdle')) {
+    //   scene.anims.create({
+    //     key: 'mageIdle',
+    //     frames: scene.anims.generateFrameNumbers(texture, { start: 0, end: -1 }),
+    //     frameRate: 10,
+    //     repeat: -1,
+    //   });
+    // }
+
+    // // Play the idle animation
+    // this.play('mageIdle');
+
     this.setInteractive({ useHandCursor: true });
 
     // Add hover and press effects
@@ -85,5 +98,6 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this.setPosition(this._spawnX, this._spawnY);
     this.setVisible(true);
     this.setActive(true);
+    // this.play('mageIdle'); // Restart the animation
   }
 }
