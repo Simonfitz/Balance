@@ -77,8 +77,16 @@ export class Battleground extends Phaser.Scene {
       } else {
         // Second column of 2, centered with the column of 3
         x = centerX + (isRightGroup ? 0 : tileSize + padding);
+        // Center the column of 2 with the column of 3
+        const column3Height = 3 * (tileSize + padding) - padding;
+        const column2Height = 2 * (tileSize + padding) - padding;
+        const verticalOffsetFor2 = (column3Height - column2Height) / 2;
         y =
-          centerY - (tileSize + padding) + (tileSize + padding) * (groupIndex - 3) + verticalOffset;
+          centerY -
+          tileSize +
+          (tileSize + padding) * (groupIndex - 3) +
+          verticalOffset +
+          verticalOffsetFor2;
       }
 
       // Initialize tile state
