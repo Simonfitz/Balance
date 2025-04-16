@@ -1,4 +1,5 @@
 import ASSETS from '../assets.js';
+import HealthBar from './healthBar.js';
 
 export default class Unit extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture, frame) {
@@ -7,6 +8,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     // Initial stats
     this._health = 100;
+    this._maxHealth = 100;
     this._attackSpeed = 1.0;
     this._respawnTime = 3.0;
     this._isDead = false;
@@ -14,6 +16,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     // Store initial spawn position
     this._spawnX = x;
     this._spawnY = y;
+
+    // Create health bar
+    this.healthBar = new HealthBar(scene, x, y - 50, 40, 5);
+    this.healthBar.setDepth(1); // Make sure health bar is above the unit
 
     // Create idle animation if it doesn't exist
     // if (!scene.anims.exists('mageIdle')) {
@@ -25,7 +31,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     //   });
     // }
 
-    // // Play the idle animation
+    // Play the idle animation
     // this.play('mageIdle');
 
     this.setInteractive({ useHandCursor: true });
@@ -54,6 +60,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   }
   set health(value) {
     this._health = Math.max(0, value);
+    // Update health bar
+    this.healthBar.setHealth(this._health / this._maxHealth);
     if (this._health === 0 && !this._isDead) {
       this.die();
     }
@@ -84,6 +92,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._isDead = true;
     this.setVisible(false);
     this.setActive(false);
+    this.healthBar.setVisible(false);
 
     // Schedule respawn
     this.scene.time.delayedCall(this._respawnTime * 1000, () => {
@@ -94,10 +103,27 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   // Respawn method
   respawn() {
     this._isDead = false;
-    this._health = 100;
+    this._health = this._maxHealth;
     this.setPosition(this._spawnX, this._spawnY);
     this.setVisible(true);
     this.setActive(true);
-    // this.play('mageIdle'); // Restart the animation
+    this.healthBar.setVisible(true);
+    this.healthBar.setHealth(1);
+    // this.play('mageIdle');
+  }
+
+  // Update method to keep health bar position in sync
+  update() {
+    if (this.healthBar) {
+      this.healthBar.setPosition(this.x, this.y - 50);
+    }
+  }
+
+  // Override destroy method to clean up health bar
+  destroy() {
+    if (this.healthBar) {
+      this.healthBar.destroy();
+    }
+    super.destroy();
   }
 }
