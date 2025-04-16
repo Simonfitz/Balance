@@ -1,11 +1,18 @@
+import { GameOptions } from '../gameConfig/gameOptions.js';
 import PlacementTile from '../gameObjects/placementTile.js';
 import Unit from '../gameObjects/unit.js';
 import { TILE } from '../constants.js';
+
+
 
 export class Battleground extends Phaser.Scene {
   constructor() {
     super('Battleground');
     this.tileStates = []; // Array to track tile states
+    this.currentCoins=0;
+    this.coinText;
+    this.coinMult = 1;
+    this.multText;
   }
 
   preload() {
@@ -22,6 +29,10 @@ export class Battleground extends Phaser.Scene {
   }
 
   create() {
+      
+    const tileSize = 50;
+    const padding = 20;
+    const verticalOffset = 200;
     const screenCenterX = this.cameras.main.width / 2;
     const screenCenterY = this.cameras.main.height / 2;
 
@@ -34,6 +45,10 @@ export class Battleground extends Phaser.Scene {
     // Load UI
     this.bar = this.add.tileSprite(screenCenterX, 100, 0, 0, 'bar');
     this.resizeToWindow(this.bar, 0.5);
+
+    //placeholder coin text
+    this.coinText = this.add.text(20, 20, 'Coins: 0', { fontSize: '32px', fill: '#FFF' });
+    this.multText = this.add.text(20, 50, 'Rate: x1', { fontSize: '32px', fill: '#FFF' });
 
     // Create left group (5 tiles)
     this.createTileGroup({
@@ -60,7 +75,11 @@ export class Battleground extends Phaser.Scene {
     });
   }
 
-  update() {}
+  update(time, delta) {
+    this.currentCoins += delta*GameOptions.baseIncomeRate*this.coinMult;
+    this.currentCoins = Math.min(this.currentCoins, 10000)
+    this.coinText.setText('Coins: ' + Math.floor(this.currentCoins)) 
+  }
 
   createTileGroup({
     startIndex,
@@ -106,8 +125,14 @@ export class Battleground extends Phaser.Scene {
 
       const tile = new PlacementTile(this, x, y, 'addButton', 0, () => {
         console.log(`Tile ${i + 1} clicked!`);
-        //this.toggleTileState(i);
-        this.initUnit(x, y);
+        if (this.currentCoins>=10*(i+1)){ //TODO remove v. hacky testing
+          //this.toggleTileState(i);
+          this.initUnit(x, y);
+          this.currentCoins-=10*(i+1);
+          this.coinMult+=Math.pow(i+1,1.2)/5.0; // numbers just added to see how scaling felt
+          this.multText.setText('Rate: x' + Math.round(this.coinMult*10)/10.0);
+        }
+        
       });
 
       // Store the tile reference
