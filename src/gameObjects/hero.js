@@ -1,4 +1,4 @@
-export default class Hero extends Phaser.Physics.Arcade.Sprite {
+export default class Hero extends Unit {
 
   constructor(scene, x, y, texture, frame) {
     super(scene, x, y, texture, frame);
