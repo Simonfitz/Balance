@@ -12,8 +12,8 @@ export class Battleground extends Phaser.Scene {
       
       // Load the mage spritesheet
       this.load.spritesheet('mageIdle', 'assets/heroes/mage/Idle.png', {
-          frameWidth: 32,  // Adjust these values based on your actual spritesheet
-          frameHeight: 32  // Adjust these values based on your actual spritesheet
+          frameWidth: 128,  // Adjust these values based on your actual spritesheet
+          frameHeight: 128  // Adjust these values based on your actual spritesheet
       });
   }
 
