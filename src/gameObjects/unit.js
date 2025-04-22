@@ -11,6 +11,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._unitName = unitName;
     this._health = 100;
     this._maxHealth = 100;
+    this._baseDamage = 1;
     this._attackTime = 3.0;
     this._respawnTime = 3.0;
     
@@ -122,10 +123,17 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     if (this.healthBar) {
       this.healthBar.setPosition(this.x, this.y - 50);
     }
-    if (this._attackCharge<this.attackTime){
-      this._attackCharge+=delta;
-      console.log(this._attackCharge)
+    if (this._attackCharge<this._attackTime){
+      this._attackCharge+=delta/1000.0;
     }
+  }
+
+  attackQuery() {
+    if (this._attackCharge>=this._attackTime){
+      this._attackCharge=0;
+      return this._baseDamage;
+    }
+    return 0
   }
 
   // Override destroy method to clean up health bar
@@ -141,5 +149,6 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._health = this._maxHealth;
     this._attackTime = this._unitBaseStats.attackTime;
     this._respawnTime = this._unitBaseStats.respawnTime;
+    this._baseDamage = this._unitBaseStats.baseDamage;
   }
 }

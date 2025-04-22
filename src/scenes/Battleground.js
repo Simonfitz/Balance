@@ -6,6 +6,7 @@ export class Battleground extends Phaser.Scene {
   constructor() {
     super('Battleground');
     this.tileStates = []; // Array to track tile states
+    this.heroArray = [];
   }
 
   preload() {
@@ -61,7 +62,19 @@ export class Battleground extends Phaser.Scene {
   }
 
   update(time, delta) {
-    
+    this.heroArray.forEach((element) => element.update(time, delta));
+    this.heroArray.forEach(
+      (element) => this.attackTarget(
+        element, this.heroArray[Math.floor(Math.random()*this.heroArray.length)]
+      )
+    );
+  }
+
+  attackTarget(source, target) {
+    let damage = source.attackQuery();
+    if (damage>0){
+      target.takeDamage(damage)
+    }
   }
 
   createTileGroup({
@@ -134,7 +147,7 @@ export class Battleground extends Phaser.Scene {
   }
 
   initUnit(x, y) {
-    this.hero = new Hero(this, x, y, 'mageIdle', 0, 'mage');
+    this.heroArray.push(new Hero(this, x, y, 'mageIdle', 0, 'mage'));
   }
 
   resizeToWindow(image, ratio = 1) {
