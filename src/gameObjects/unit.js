@@ -83,6 +83,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
   // Damage method
   takeDamage(amount) {
+    console.log(this.health)
     if (this._isDead) return;
     this.health -= amount;
   }

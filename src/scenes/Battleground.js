@@ -9,6 +9,7 @@ export class Battleground extends Phaser.Scene {
   constructor() {
     super('Battleground');
     this.tileStates = []; // Array to track tile states
+    this.unitArray = [];
     this.currentCoins=0;
     this.coinText;
     this.coinMult = 1;
@@ -76,6 +77,7 @@ export class Battleground extends Phaser.Scene {
   }
 
   update(time, delta) {
+    this.unitArray.forEach((element) => element.takeDamage(delta/100.0))
     this.currentCoins += delta*GameOptions.baseIncomeRate*this.coinMult;
     this.currentCoins = Math.min(this.currentCoins, 10000)
     this.coinText.setText('Coins: ' + Math.floor(this.currentCoins)) 
@@ -157,7 +159,8 @@ export class Battleground extends Phaser.Scene {
   }
 
   initUnit(x, y) {
-    this.unit = new Unit(this, x, y, 'mageIdle');
+    this.unitArray.push(new Unit(this, x, y, 'mageIdle'));
+    //this.unit = new Unit(this, x, y, 'mageIdle');
   }
 
   resizeToWindow(image, ratio = 1) {
