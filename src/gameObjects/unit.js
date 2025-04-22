@@ -14,18 +14,15 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._baseDamage = 1;
     this._attackTime = 3.0;
     this._respawnTime = 3.0;
-    
-    this._isDead = false;
-
-    this._isActive = true;
-    this._mostRecentValidPosition = {x:x, y:y}
     this._attackCharge = 0.0;
     this._attackSpeed = 1.0;
-
+    this._isDead = false;
+    this._isActive = true;
 
     // Store initial spawn position
     this._spawnX = x;
     this._spawnY = y;
+    this._mostRecentValidPosition = {x:x, y:y}
 
     // Create health bar
     this.healthBar = new HealthBar(scene, x, y - 50, 40, 5);
@@ -61,7 +58,6 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     });
 
     this.on('pointerup', () => {
-      //this.destroy();
       this.updateState()
     });
   }
@@ -70,6 +66,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   get health() {
     return this._health;
   }
+
   set health(value) {
     this._health = Math.max(0, value);
     // Update health bar
@@ -82,6 +79,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   get attackSpeed() {
     return this._attackSpeed;
   }
+
   set attackSpeed(value) {
     this._attackSpeed = value;
   }
@@ -89,6 +87,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   get respawnTime() {
     return this._respawnTime;
   }
+
   set respawnTime(value) {
     this._respawnTime = value;
   }
