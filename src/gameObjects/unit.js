@@ -12,6 +12,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._attackSpeed = 1.0;
     this._respawnTime = 3.0;
     this._isDead = false;
+    this._isActive = false;
+    this._mostRecentValidPosition = {x:0, y:0}
 
     // Store initial spawn position
     this._spawnX = x;
@@ -34,7 +36,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     // Play the idle animation
     // this.play('mageIdle');
 
-    this.setInteractive({ useHandCursor: true });
+    this.setInteractive({ useHandCursor: true, draggable: true });
+    this.on('drag', (pointer, dragX, dragY) => this.setPosition(dragX, dragY));
 
     // Add hover and press effects
     this.on('pointerover', () => {
@@ -49,9 +52,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
       this.setTint(0x999999); // Darken the sprite when pressed
     });
 
-    this.on('pointerup', () => {
-      this.destroy();
-    });
+    // this.on('pointerup', () => {
+    //   this.destroy();
+    // });
   }
 
   // Getters & Setters
@@ -117,6 +120,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     if (this.healthBar) {
       this.healthBar.setPosition(this.x, this.y - 50);
     }
+    console.log("A")
   }
 
   // Override destroy method to clean up health bar
@@ -125,5 +129,47 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
       this.healthBar.destroy();
     }
     super.destroy();
+  }
+
+  updateState(bench, placementTiles){
+    // check current position against positions of bench and placement tiles
+    // update if moved near a valid zone, otherwise revert position and do not update any flags
+    if (this.isPositionValid(bench, placementTiles)){
+      updatePosition(this.x, this.y)
+    }
+    else{
+      this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y)
+    }
+  }
+
+  isPositionValid(bench, placementTiles){
+    // if position has changed
+    if (this.x != this._mostRecentValidPosition.x || this.y != this._mostRecentValidPosition.y){ 
+      if (this.y <= bench.y){
+        
+      }
+    }
+    // if currently active, if far left, if bench not full
+    // if currently inactive, if placement tile is not occupied
+    if (this._isActive === true && new_y < 100) {
+      return true;
+      } 
+    else {
+      return false;
+      }
+  }
+
+  updatePosition(x, y){
+    this._mostRecentValidPosition.x = x
+    this._mostRecentValidPosition.y = y
+  }
+
+  toggleActive(){
+    if (this._isActive === true) {
+      this._isActive = false;
+      } 
+    else {
+      this._isActive = true;
+      }
   }
 }
