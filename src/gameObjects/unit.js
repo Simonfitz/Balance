@@ -13,7 +13,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._respawnTime = 3.0;
     this._isDead = false;
     this._isActive = false;
-    this._mostRecentValidPosition = {x:0, y:0}
+    this._mostRecentValidPosition = {x:x, y:y}
 
     // Store initial spawn position
     this._spawnX = x;
@@ -52,9 +52,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
       this.setTint(0x999999); // Darken the sprite when pressed
     });
 
-    // this.on('pointerup', () => {
-    //   this.destroy();
-    // });
+    this.on('pointerup', () => {
+      //this.destroy();
+      this.updateState()
+    });
   }
 
   // Getters & Setters
@@ -131,29 +132,25 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     super.destroy();
   }
 
-  updateState(bench, placementTiles){
+  updateState(){
     // check current position against positions of bench and placement tiles
     // update if moved near a valid zone, otherwise revert position and do not update any flags
-    if (this.isPositionValid(bench, placementTiles)){
-      updatePosition(this.x, this.y)
+    if (this.isPositionValid()){
+      this.updatePosition(this.x, this.y)
     }
     else{
       this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y)
     }
   }
 
-  isPositionValid(bench, placementTiles){
+  isPositionValid(){
     // if position has changed
-    if (this.x != this._mostRecentValidPosition.x || this.y != this._mostRecentValidPosition.y){ 
-      if (this.y <= bench.y){
-        
+    if (this.x != this._mostRecentValidPosition.x || this.y != this._mostRecentValidPosition.y){
+      // if at the bench
+      if (this.x <= 50){
+        return true;
       }
     }
-    // if currently active, if far left, if bench not full
-    // if currently inactive, if placement tile is not occupied
-    if (this._isActive === true && new_y < 100) {
-      return true;
-      } 
     else {
       return false;
       }
