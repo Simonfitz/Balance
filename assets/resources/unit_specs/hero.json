@@ -1,0 +1,8 @@
+{
+  "mage": {
+    "maxHealth": 100,
+    "attack": 20.0,
+    "attackTime": 10.0,
+    "respawnTime": 5.0
+  }
+}

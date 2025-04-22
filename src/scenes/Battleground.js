@@ -1,5 +1,5 @@
 import PlacementTile from '../gameObjects/placementTile.js';
-import Unit from '../gameObjects/unit.js';
+import Hero from '../gameObjects/hero.js';
 import { TILE } from '../constants.js';
 
 export class Battleground extends Phaser.Scene {
@@ -60,7 +60,9 @@ export class Battleground extends Phaser.Scene {
     });
   }
 
-  update() {}
+  update(time, delta) {
+    
+  }
 
   createTileGroup({
     startIndex,
@@ -132,7 +134,7 @@ export class Battleground extends Phaser.Scene {
   }
 
   initUnit(x, y) {
-    this.unit = new Unit(this, x, y, 'mageIdle');
+    this.hero = new Hero(this, x, y, 'mageIdle', 0, 'mage');
   }
 
   resizeToWindow(image, ratio = 1) {

@@ -2,16 +2,21 @@ import ASSETS from '../assets.js';
 import HealthBar from './healthBar.js';
 
 export default class Unit extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y, texture, frame) {
+  constructor(scene, x, y, texture, frame, unitName) {
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
-
-    // Initial stats
+    
+    // Initial default stats
+    this._unitBaseStats = {};
+    this._unitName = unitName;
     this._health = 100;
     this._maxHealth = 100;
-    this._attackSpeed = 1.0;
+    this._attackTime = 3.0;
     this._respawnTime = 3.0;
+    
     this._isDead = false;
+    this._attackCharge = 0.0;
+    this._attackSpeed = 1.0;
 
     // Store initial spawn position
     this._spawnX = x;
@@ -113,9 +118,13 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   }
 
   // Update method to keep health bar position in sync
-  update() {
+  update(time, delta) {
     if (this.healthBar) {
       this.healthBar.setPosition(this.x, this.y - 50);
+    }
+    if (this._attackCharge<this.attackTime){
+      this._attackCharge+=delta;
+      console.log(this._attackCharge)
     }
   }
 
@@ -125,5 +134,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
       this.healthBar.destroy();
     }
     super.destroy();
+  }
+
+  loadBaseStats() {
+    this._maxHealth = this._unitBaseStats.maxHealth;
+    this._health = this._maxHealth;
+    this._attackTime = this._unitBaseStats.attackTime;
+    this._respawnTime = this._unitBaseStats.respawnTime;
   }
 }
