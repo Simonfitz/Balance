@@ -20,6 +20,8 @@ export class Battleground extends Phaser.Scene {
     this.load.image('bench_heroes', 'assets/UI/bench.png');
     this.load.image('bench_monsters', 'assets/UI/bench.png');
     this.load.image('bar', 'assets/backgrounds/bar.png');
+
+    this.load.image('flare', 'assets/misc/flare.png');
   
     // load the hero sprite
     this.load.spritesheet('mageIdle', 'assets/heroes/mage/Idle.png', {
@@ -32,6 +34,10 @@ export class Battleground extends Phaser.Scene {
   }
 
   create() {
+    // Create the particle emitter at the starting position
+    
+
+
     const screenCenterX = this.cameras.main.width / 2;
     const screenCenterY = this.cameras.main.height / 2;
 
@@ -71,6 +77,14 @@ export class Battleground extends Phaser.Scene {
       verticalOffset: TILE.VERTICAL_OFFSET,
       isRightGroup: true,
     });
+    this.emitter = this.add.particles(0, 0, 'flare', {
+      lifespan: 500,
+      //gravity: 500,
+      blendMode: 'ADD',
+      moveToX: 50,
+      moveToY: 50
+    });
+    this.emitter.stop();
   }
 
   update(time, delta) {
@@ -91,13 +105,18 @@ export class Battleground extends Phaser.Scene {
     );
   }
 
-  attackTarget(source, target){
+  attackTarget(source, target) {
     if(target){
       if(target._isActive){
         let damage = source.attackQuery();
         if (damage>0){
+          console.log(this.emitter.moveTo)
+          target.emitter.moveToX = target.x;
+          target.emitter.moveToY = target.y;
+          //console.log(this.emitter.moveToX)
+          target.emitter.explode(10, source.x, source.y);
           target.takeDamage(damage)
-          }
+        }
       }
     }
   }
