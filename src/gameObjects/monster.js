@@ -1,8 +1,11 @@
-export default class Monster extends Unit {
-  constructor(scene, x, y, texture, frame) {
-    super(scene, x, y, texture, frame);
+import Unit from './unit.js'
+import jsonData from '../../assets/resources/unit_specs/monster.json' with { type: 'json' };
 
+export default class Monster extends Unit {
+  constructor(scene, x, y, texture, frame, unitName) {
+    super(scene, x, y, texture, frame);
+    this._unitBaseStats = jsonData[unitName]
+    super.loadBaseStats();
     scene.add.existing(this);
-    scene.physics.add.existing(this);
   }
 }
