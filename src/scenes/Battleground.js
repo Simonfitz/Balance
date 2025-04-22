@@ -11,10 +11,14 @@ export class Battleground extends Phaser.Scene {
 
   preload() {
     // Load the add button image
-    this.load.image('addButton', 'assets/misc/add.png');
-    this.load.image('background_battleground', 'assets/backgrounds/background_test2.png');
+    this.load.image('addButton', 'assets/UI/add.png');
+    // load the background image
+    this.load.image('background_battleground', 'assets/backgrounds/background_battleground.png');
+    // load the UI elememts
+    this.load.image('bench_heroes', 'assets/UI/bench.png');
+    this.load.image('bench_monsters', 'assets/UI/bench.png');
     this.load.image('bar', 'assets/backgrounds/bar.png');
-
+  
     // Load the mage spritesheet
     this.load.spritesheet('mageIdle', 'assets/heroes/mage/Idle.png', {
       frameWidth: 64, // Adjust these values based on your actual spritesheet
@@ -34,6 +38,9 @@ export class Battleground extends Phaser.Scene {
 
     // Load UI
     this.bar = this.add.tileSprite(screenCenterX, 100, 0, 0, 'bar');
+    this.bench_heroes = this.add.tileSprite(0, screenCenterY, 0, 0, 'bench_heroes');
+    this.bench_monsters = this.add.tileSprite(screenCenterX*2, screenCenterY, 0, 0, 'bench_monsters');
+
     this.resizeToWindow(this.bar, 0.5);
 
     // Create left group (5 tiles)
