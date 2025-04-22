@@ -6,9 +6,10 @@ import { TILE } from '../constants.js';
 export class Battleground extends Phaser.Scene {
   constructor() {
     super('Battleground');
-    this.tileStates = []; // Array to track tile states
     this.heroArray = [];
     this.monsterArray = [];
+    this.heroSlots = [];
+    this.monsterSlots = [];
   }
 
   preload() {
@@ -34,10 +35,6 @@ export class Battleground extends Phaser.Scene {
   }
 
   create() {
-    // Create the particle emitter at the starting position
-    
-
-
     const screenCenterX = this.cameras.main.width / 2;
     const screenCenterY = this.cameras.main.height / 2;
 
@@ -110,10 +107,8 @@ export class Battleground extends Phaser.Scene {
       if(target._isActive){
         let damage = source.attackQuery();
         if (damage>0){
-          console.log(this.emitter.moveTo)
           target.emitter.moveToX = target.x;
           target.emitter.moveToY = target.y;
-          //console.log(this.emitter.moveToX)
           target.emitter.explode(10, source.x, source.y);
           target.takeDamage(damage)
         }
@@ -162,34 +157,17 @@ export class Battleground extends Phaser.Scene {
 
       // Initialize tile state
       this.tileStates[i] = 'empty';
-
-      const tile = new PlacementTile(this, x, y, 'addButton', 0, () => {
-        console.log(`Tile ${i + 1} clicked!`);
-        if(isRightGroup){
-          this.initMonster(x, y)
-        }
-        else{this.initHero(x, y)}
-        
-      });
-
-      // Store the tile reference
-      this[`tile${i}`] = tile;
-    }
-  }
-
-  toggleTileState(tileIndex) {
-    const currentState = this.tileStates[tileIndex];
-    const tile = this[`tile${tileIndex}`];
-
-    if (currentState === 'empty') {
-      // Switch from add button to mage
-      this.tileStates[tileIndex] = 'filled';
-      //tile.updateTexture('mageIdle');
-      tile.visible = false;
-    } else {
-      // Switch from mage back to add button
-      this.tileStates[tileIndex] = 'empty';
-      tile.updateTexture('addButton');
+      
+      if(isRightGroup){
+        this.monsterSlots.push(new PlacementTile(this, x, y, 'addButton', 0, () => {
+        this.initMonster(x, y)
+        }))
+      }
+      else{
+        this.heroSlots.push(new PlacementTile(this, x, y, 'addButton', 0, () => {
+        this.initHero(x, y)
+      }))
+      }
     }
   }
 

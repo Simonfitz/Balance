@@ -4,6 +4,9 @@ export default class PlacementTile extends Phaser.GameObjects.Container {
   constructor(scene, x, y, texture, frame, callback) {
     super(scene, x, y);
 
+    // tile slot status
+    this.empty = true;
+
     // Store the initial texture and frame
     this.currentTexture = texture;
     this.currentFrame = frame;
