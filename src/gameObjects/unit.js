@@ -17,7 +17,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     
     this._isDead = false;
 
-    this._isActive = false;
+    this._isActive = true;
     this._mostRecentValidPosition = {x:x, y:y}
     this._attackCharge = 0.0;
     this._attackSpeed = 1.0;
@@ -102,6 +102,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   // Die method
   die() {
     this._isDead = true;
+    this._isActive = false;
     this.setVisible(false);
     this.setActive(false);
     this.healthBar.setVisible(false);
@@ -115,6 +116,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   // Respawn method
   respawn() {
     this._isDead = false;
+    this._isActive = true;
     this._health = this._maxHealth;
     this.setPosition(this._spawnX, this._spawnY);
     this.setVisible(true);
@@ -129,7 +131,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     if (this.healthBar) {
       this.healthBar.setPosition(this.x, this.y - 50);
     }
-    if (this._attackCharge<this._attackTime){
+    if (this._attackCharge<this._attackTime && this._isActive){
       this._attackCharge+=delta/1000.0;
     }
   }
@@ -155,6 +157,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     // update if moved near a valid zone, otherwise revert position and do not update any flags
     if (this.isPositionValid()){
       this.updatePosition(this.x, this.y)
+      this.toggleActive()
     }
     else{
       this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y)
@@ -182,6 +185,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   toggleActive(){
     if (this._isActive === true) {
       this._isActive = false;
+      this.healthBar.destroy()
       } 
     else {
       this._isActive = true;

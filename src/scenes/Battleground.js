@@ -1,5 +1,6 @@
 import PlacementTile from '../gameObjects/placementTile.js';
 import Hero from '../gameObjects/hero.js';
+import Monster from '../gameObjects/monster.js';
 import { TILE } from '../constants.js';
 
 export class Battleground extends Phaser.Scene {
@@ -7,11 +8,12 @@ export class Battleground extends Phaser.Scene {
     super('Battleground');
     this.tileStates = []; // Array to track tile states
     this.heroArray = [];
+    this.monsterArray = [];
   }
 
   preload() {
     // Load the add button image
-    this.load.image('addButton', 'assets/UI/add.png');
+    this.load.image('addButton', 'assets/UI/slot.png');
     // load the background image
     this.load.image('background_battleground', 'assets/backgrounds/background_battleground.png');
     // load the UI elememts
@@ -19,11 +21,14 @@ export class Battleground extends Phaser.Scene {
     this.load.image('bench_monsters', 'assets/UI/bench.png');
     this.load.image('bar', 'assets/backgrounds/bar.png');
   
-    // Load the mage spritesheet
+    // load the hero sprite
     this.load.spritesheet('mageIdle', 'assets/heroes/mage/Idle.png', {
       frameWidth: 64, // Adjust these values based on your actual spritesheet
       frameHeight: 70, // Adjust these values based on your actual spritesheet
     });
+
+    // load the monster sprite
+    this.load.image('demon', 'assets/monsters/Demon/idle.png');
   }
 
   create() {
@@ -69,18 +74,31 @@ export class Battleground extends Phaser.Scene {
   }
 
   update(time, delta) {
+    // update heroes
     this.heroArray.forEach((element) => element.update(time, delta));
     this.heroArray.forEach(
+      (element) => this.attackTarget(
+        element, this.monsterArray[Math.floor(Math.random()*this.monsterArray.length)]
+      )
+    );
+
+    // update monsters
+    this.monsterArray.forEach((element) => element.update(time, delta));
+    this.monsterArray.forEach(
       (element) => this.attackTarget(
         element, this.heroArray[Math.floor(Math.random()*this.heroArray.length)]
       )
     );
   }
 
-  attackTarget(source, target) {
-    let damage = source.attackQuery();
-    if (damage>0){
-      target.takeDamage(damage)
+  attackTarget(source, target){
+    if(target){
+      if(target._isActive){
+        let damage = source.attackQuery();
+        if (damage>0){
+          target.takeDamage(damage)
+          }
+      }
     }
   }
 
@@ -128,8 +146,11 @@ export class Battleground extends Phaser.Scene {
 
       const tile = new PlacementTile(this, x, y, 'addButton', 0, () => {
         console.log(`Tile ${i + 1} clicked!`);
-        //this.toggleTileState(i);
-        this.initUnit(x, y);
+        if(isRightGroup){
+          this.initMonster(x, y)
+        }
+        else{this.initHero(x, y)}
+        
       });
 
       // Store the tile reference
@@ -153,8 +174,12 @@ export class Battleground extends Phaser.Scene {
     }
   }
 
-  initUnit(x, y) {
+  initHero(x, y) {
     this.heroArray.push(new Hero(this, x, y, 'mageIdle', 0, 'mage'));
+  }
+
+  initMonster(x, y) {
+    this.monsterArray.push(new Monster(this, x, y, 'demon', 0, 'demon'));
   }
 
   resizeToWindow(image, ratio = 1) {
