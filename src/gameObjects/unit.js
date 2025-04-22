@@ -2,18 +2,26 @@ import ASSETS from '../assets.js';
 import HealthBar from './healthBar.js';
 
 export default class Unit extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y, texture, frame) {
+  constructor(scene, x, y, texture, frame, unitName) {
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
-
-    // Initial stats
+    
+    // Initial default stats
+    this._unitBaseStats = {};
+    this._unitName = unitName;
     this._health = 100;
     this._maxHealth = 100;
-    this._attackSpeed = 1.0;
+    this._baseDamage = 1;
+    this._attackTime = 3.0;
     this._respawnTime = 3.0;
+    
     this._isDead = false;
+
     this._isActive = false;
     this._mostRecentValidPosition = {x:x, y:y}
+    this._attackCharge = 0.0;
+    this._attackSpeed = 1.0;
+
 
     // Store initial spawn position
     this._spawnX = x;
@@ -117,11 +125,21 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   }
 
   // Update method to keep health bar position in sync
-  update() {
+  update(time, delta) {
     if (this.healthBar) {
       this.healthBar.setPosition(this.x, this.y - 50);
     }
-    console.log("A")
+    if (this._attackCharge<this._attackTime){
+      this._attackCharge+=delta/1000.0;
+    }
+  }
+
+  attackQuery() {
+    if (this._attackCharge>=this._attackTime){
+      this._attackCharge=0;
+      return this._baseDamage;
+    }
+    return 0
   }
 
   // Override destroy method to clean up health bar
@@ -168,5 +186,13 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     else {
       this._isActive = true;
       }
+  }
+
+  loadBaseStats() {
+    this._maxHealth = this._unitBaseStats.maxHealth;
+    this._health = this._maxHealth;
+    this._attackTime = this._unitBaseStats.attackTime;
+    this._respawnTime = this._unitBaseStats.respawnTime;
+    this._baseDamage = this._unitBaseStats.baseDamage;
   }
 }
