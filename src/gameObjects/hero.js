@@ -13,6 +13,30 @@ export default class Hero extends Unit {
     this.currentScene = scene
   }
 
+  sendToField(slot){
+    this.setPosition(slot.x, slot.y);
+    if(!this._isActive){
+      this.currentScene.heroBenchCurrentSize--;
+    }
+    this.toggleActive(true);
+  }
+
+  sendToBench(){
+    if(this._isActive){
+      this.currentScene.heroBenchCurrentSize++;
+      this.toggleActive(false);
+    }  
+    let benchPosition = (this.bench.y - (this.bench.height/2)) + ((this.currentScene.heroBenchCurrentSize)/(this.currentScene.heroBenchMaxSize) * this.bench.height)
+    this.setPosition(this.bench.x, benchPosition);
+  }
+
+  isBenchFull(){
+    if(this.currentScene.heroBenchCurrentSize < this.currentScene.heroBenchMaxSize){
+      return false;
+    }
+    return true;
+  }
+
   deathAffects(){
     this.currentScene.currencyBank.addBlue(this._value)
   }

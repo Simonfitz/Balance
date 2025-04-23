@@ -41,19 +41,6 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this.healthBar = new HealthBar(scene, x, y - 50, 40, 5);
     this.healthBar.setDepth(1); // Make sure health bar is above the unit
 
-    // Create idle animation if it doesn't exist
-    // if (!scene.anims.exists('mageIdle')) {
-    //   scene.anims.create({
-    //     key: 'mageIdle',
-    //     frames: scene.anims.generateFrameNumbers(texture, { start: 0, end: -1 }),
-    //     frameRate: 10,
-    //     repeat: -1,
-    //   });
-    // }
-
-    // Play the idle animation
-    // this.play('mageIdle');
-
     this.setInteractive({ useHandCursor: true, draggable: true });
     this.on('drag', (pointer, dragX, dragY) => this.setPosition(dragX, dragY));
 
@@ -71,7 +58,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     });
 
     this.on('pointerup', () => {
-      this.updateState()
+      this.updatePosition()
     });
   }
 
@@ -169,26 +156,29 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     super.destroy();
   }
 
-  updateState(){
-    // check current position against positions of bench and placement tiles
-    // update if moved near a valid zone, otherwise revert position and do not update any flags
-    this.snapToPosition();
-    // if (this.isPositionValid()){
-    //   this.updatePosition(this.x, this.y)
-    //   this.toggleActive()
-    // }
-    // else{
-    //   this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y)
-    // }
+  updatePosition(){
+    const newPosition = this.snapToPosition();
+    if (this.isPositionValid(newPosition)){
+      this._mostRecentValidPosition.x = this.x
+      this._mostRecentValidPosition.y = this.y
+    }
+    else{
+      this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y)
+    }
   }
 
-  isPositionValid(){
-
-  }
-
-  updatePosition(x, y){
-    this._mostRecentValidPosition.x = x
-    this._mostRecentValidPosition.y = y
+  isPositionValid(newPosition){
+    if (newPosition === this.bench && !this.isBenchFull()){
+      this.sendToBench();
+      return true;
+    }
+    if (this.slots.some(obj => obj === newPosition) && newPosition._isEmpty === true){
+      this.sendToField(newPosition)
+      return true;
+    }
+    else{
+      return false;
+    }
   }
 
   toggleActive(state){
@@ -206,8 +196,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   }
 
   snapToPosition() {
+    // Return the closest object
     if (this.x <= this.bench.width || this.x >= this.currentScene.cameras.main.width - this.bench.width) {
-      this.sendToBench();
+      return this.bench
     } else {
       let closestDistance = Infinity;
       let closestSlot = null;
@@ -220,20 +211,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         }
       });
 
-      this.sendToField(closestSlot)
+      return closestSlot
     }
   }
-
-  sendToBench(){
-    this.setPosition(this.bench.x, this.bench.y);
-    this.toggleActive(false)
-  }
-
-  sendToField(slot){
-    this.setPosition(slot.x, slot.y);
-    this.toggleActive(true)
-  }
-
 
   getDistance(x1, y1, x2, y2) {
     const dx = x2 - x1;
