@@ -127,9 +127,6 @@ export class Battleground extends Phaser.Scene {
     // update UI
     //this.updateBenchText();
     this.updateCurrencyText();
-    // TODO remove and hook up to death event
-    this.currencyBlue += 1
-    this.currencyRed += 10
   }
 
   attackTarget(source, target) {

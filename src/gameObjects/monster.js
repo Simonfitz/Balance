@@ -10,5 +10,11 @@ export default class Monster extends Unit {
     // Relevent UI locations
     this.bench = scene.monsterBench
     this.slots = scene.monsterSlots
+    this.currentScene = scene
+  }
+
+  deathAffects(){
+    this.currentScene.currencyRed += this._value;
+    console.log(this.currentScene.currencyRed);
   }
 }

@@ -10,5 +10,11 @@ export default class Hero extends Unit {
     // Relevent UI locations
     this.bench = scene.heroBench
     this.slots = scene.heroSlots
+    this.currentScene = scene
+  }
+
+  deathAffects(){
+    this.currentScene.currencyBlue += this._value
+    console.log(this.currentScene.currencyBlue);
   }
 }

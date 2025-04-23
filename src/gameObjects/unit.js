@@ -118,11 +118,16 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this.setVisible(false);
     this.setActive(false);
     this.healthBar.setVisible(false);
+    this.deathAffects()
 
     // Schedule respawn
     this.scene.time.delayedCall(this._respawnTime * 1000, () => {
       this.respawn();
     });
+  }
+
+  deathAffects(){
+    // See Hero Monster classes
   }
 
   // Respawn method
@@ -242,6 +247,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._attackTime = this._unitBaseStats.attackTime;
     this._respawnTime = this._unitBaseStats.respawnTime;
     this._baseDamage = this._unitBaseStats.baseDamage;
+    this._value = this._unitBaseStats.value
   }
 }
 
