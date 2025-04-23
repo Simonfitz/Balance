@@ -46,17 +46,25 @@ export class Battleground extends Phaser.Scene {
 
     // Load UI
     this.bar = this.add.tileSprite(screenCenterX, 100, 0, 0, 'bar');
-    this.bar.setScale(0.75, 0.5);
+    this.bar.setScale(1.00, 0.75);
     this.bench_heroes = this.add.tileSprite(50, screenCenterY, 0, 0, 'bench_heroes');
     this.bench_heroes.setScale(0.75, 1.2);
     this.bench_monsters = this.add.tileSprite((screenCenterX*2)-50, screenCenterY, 0, 0, 'bench_monsters');
     this.bench_monsters.setScale(0.75, 1.2);
 
+    this.currencyRed = 1000;
+    const textStyleRed = { fontFamily: 'Arial Black', fontSize: 38, color: '#660000', stroke: '#000000', strokeThickness: 5 };
+    this.scoreText = this.add.text(screenCenterX - this.bar.width/2, 40, this.currencyRed, textStyleRed).setDepth(1);
+
+    this.currencyBlue = 1000;
+    const textStyleBlue = { fontFamily: 'Arial Black', fontSize: 38, color: '#000066', stroke: '#000000', strokeThickness: 5 };
+    this.scoreText = this.add.text(screenCenterX + this.bar.width/2, 40, this.currencyBlue, textStyleBlue).setDepth(1);
+
     // Create left group (5 tiles)
     this.createTileGroup({
       startIndex: 0,
       endIndex: 5,
-      baseX: 200, // Distance from left edge
+      baseX: 300, // Distance from left edge
       centerY: screenCenterY,
       tileSize: TILE.SIZE,
       padding: TILE.PADDING,
@@ -68,7 +76,7 @@ export class Battleground extends Phaser.Scene {
     this.createTileGroup({
       startIndex: 5,
       endIndex: 10,
-      baseX: this.cameras.main.width - 200, // Distance from right edge
+      baseX: this.cameras.main.width - 300, // Distance from right edge
       centerY: screenCenterY,
       tileSize: TILE.SIZE,
       padding: TILE.PADDING,
@@ -136,24 +144,24 @@ export class Battleground extends Phaser.Scene {
         // First column of 3 tiles
         // For right group, this is the right column
         // For left group, this is the left column
-        x = isRightGroup ? baseX : baseX;
-        y = centerY - tileSize - padding + (tileSize + padding) * groupIndex + verticalOffset;
+        x = isRightGroup ? baseX + (groupIndex*padding): baseX - (groupIndex*padding);
+        y = centerY - tileSize + (tileSize) * groupIndex + verticalOffset;
       } else {
         // Second column of 2 tiles
         // For right group, this is the left column
         // For left group, this is the right column
-        x = isRightGroup ? baseX - tileSize - padding : baseX + tileSize + padding;
+        x = isRightGroup ? baseX - tileSize - ((groupIndex-3)*padding)  : baseX + tileSize + ((groupIndex-3)*padding);
 
         // Center the column of 2 with the column of 3
-        const column3Height = 3 * (tileSize + padding) - padding;
-        const column2Height = 2 * (tileSize + padding) - padding;
+        const column3Height = 3 * (tileSize);
+        const column2Height = 2 * (tileSize);
         const verticalOffsetFor2 = (column3Height - column2Height) / 2;
         y =
           centerY -
-          tileSize +
-          (tileSize + padding) * (groupIndex - 3) +
+          tileSize -
+          (tileSize) * (groupIndex - 3) +
           verticalOffset +
-          verticalOffsetFor2;
+          verticalOffsetFor2*3;
       }
       
       if(isRightGroup){
