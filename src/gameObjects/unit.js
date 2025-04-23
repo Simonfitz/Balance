@@ -5,6 +5,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture, frame, unitName) {
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
+    this.currentScene = scene
     this.emitter = this.scene.add.particles(0, 0, 'flare', {
       lifespan: 200,
       gravity: 500,
@@ -31,6 +32,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._spawnX = x;
     this._spawnY = y;
     this._mostRecentValidPosition = {x:x, y:y}
+
+    // UI locations
+    this.bench = scene.bench_heroes
+    this.slots = scene.heroSlots
 
     // Create health bar
     this.healthBar = new HealthBar(scene, x, y - 50, 40, 5);
@@ -162,26 +167,18 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   updateState(){
     // check current position against positions of bench and placement tiles
     // update if moved near a valid zone, otherwise revert position and do not update any flags
-    if (this.isPositionValid()){
-      this.updatePosition(this.x, this.y)
-      this.toggleActive()
-    }
-    else{
-      this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y)
-    }
+    this.snapToPosition();
+    // if (this.isPositionValid()){
+    //   this.updatePosition(this.x, this.y)
+    //   this.toggleActive()
+    // }
+    // else{
+    //   this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y)
+    // }
   }
 
   isPositionValid(){
-    // if position has changed
-    if (this.x != this._mostRecentValidPosition.x || this.y != this._mostRecentValidPosition.y){
-      // if at the bench
-      if (this.x <= 50){
-        return true;
-      }
-    }
-    else {
-      return false;
-      }
+
   }
 
   updatePosition(x, y){
@@ -189,15 +186,55 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._mostRecentValidPosition.y = y
   }
 
-  toggleActive(){
-    if (this._isActive === true) {
+  toggleActive(state){
+    if (state === false) {
       this._isActive = false;
       this.healthBar.destroy()
       } 
     else {
+      if(this._isActive === false){
+        this.healthBar = new HealthBar(this.currentScene, this.x, this.y - 50, 40, 5);
+        this.healthBar.setDepth(1); // Make sure health bar is above the unit
+      }
       this._isActive = true;
       }
   }
+
+  snapToPosition() {
+    if (this.x <= this.bench.width) {
+      this.sendToBench();
+    } else {
+      let closestDistance = Infinity;
+      let closestSlot = null;
+
+      this.slots.forEach((element) => {
+        const dist = this.getDistance(this.x, this.y, element.x, element.y);
+        if (dist < closestDistance) {
+          closestDistance = dist;
+          closestSlot = element;
+        }
+      });
+
+      this.sendToField(closestSlot)
+    }
+  }
+
+  sendToBench(){
+    this.setPosition(this.bench.x, this.bench.y);
+    this.toggleActive(false)
+  }
+
+  sendToField(slot){
+    this.setPosition(slot.x, slot.y);
+    this.toggleActive(true)
+  }
+
+
+  getDistance(x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    return Math.sqrt(dx * dx + dy * dy);
+    }
 
   loadBaseStats() {
     this._maxHealth = this._unitBaseStats.maxHealth;
@@ -207,3 +244,4 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._baseDamage = this._unitBaseStats.baseDamage;
   }
 }
+

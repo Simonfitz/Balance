@@ -46,10 +46,11 @@ export class Battleground extends Phaser.Scene {
 
     // Load UI
     this.bar = this.add.tileSprite(screenCenterX, 100, 0, 0, 'bar');
-    this.bench_heroes = this.add.tileSprite(0, screenCenterY, 0, 0, 'bench_heroes');
-    this.bench_monsters = this.add.tileSprite(screenCenterX*2, screenCenterY, 0, 0, 'bench_monsters');
-
-    this.resizeToWindow(this.bar, 0.5);
+    this.bar.setScale(0.75, 0.5);
+    this.bench_heroes = this.add.tileSprite(50, screenCenterY, 0, 0, 'bench_heroes');
+    this.bench_heroes.setScale(0.75, 1.2);
+    this.bench_monsters = this.add.tileSprite((screenCenterX*2)-50, screenCenterY, 0, 0, 'bench_monsters');
+    this.bench_monsters.setScale(0.75, 1.2);
 
     // Create left group (5 tiles)
     this.createTileGroup({
@@ -154,9 +155,6 @@ export class Battleground extends Phaser.Scene {
           verticalOffset +
           verticalOffsetFor2;
       }
-
-      // Initialize tile state
-      this.tileStates[i] = 'empty';
       
       if(isRightGroup){
         this.monsterSlots.push(new PlacementTile(this, x, y, 'addButton', 0, () => {
