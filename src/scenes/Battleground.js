@@ -45,7 +45,7 @@ export class Battleground extends Phaser.Scene {
     this.resizeToWindow(this.background_battleground);
 
     // Load UI
-    this.bar = this.add.tileSprite(screenCenterX, 100, 0, 0, 'bar');
+    this.bar = this.add.tileSprite(screenCenterX, 50, 0, 0, 'bar');
     this.bar.setScale(1.00, 0.75);
 
     this.heroBench = this.add.tileSprite(50, screenCenterY, 0, 0, 'heroBench');
@@ -56,11 +56,13 @@ export class Battleground extends Phaser.Scene {
 
     this.currencyRed = 0;
     this.textStyleRed = { fontFamily: 'Arial Black', fontSize: 38, color: '#660000', stroke: '#AC7D0C', strokeThickness: 3 };
-    this.currencyRedText = this.add.text(this.bar.x - this.bar.width/2 - this.textStyleRed.fontSize, this.bar.y - this.bar.height/4, this.currencyRed, this.textStyleRed).setDepth(1);
+    this.currencyRedTextPosition = {x: this.bar.x - this.bar.width/2 - this.textStyleRed.fontSize*2, y: this.bar.y - this.bar.height/4}
+    this.currencyRedText = this.add.text(this.currencyRedTextPosition.x, this.currencyRedTextPosition.y, this.currencyRed, this.textStyleRed).setDepth(1);
 
     this.currencyBlue = 0;
     this.textStyleBlue = { fontFamily: 'Arial Black', fontSize: 38, color: '#000066', stroke: '#AC7D0C', strokeThickness: 3 };
-    this.currencyBlueText = this.add.text(this.bar.x + this.bar.width/2 + this.textStyleBlue.fontSize, this.bar.y - this.bar.height/4, this.currencyBlue, this.textStyleBlue).setDepth(1);
+    this.currencyBlueTextPosition = {x: this.bar.x + this.bar.width/2 + this.textStyleBlue.fontSize*2, y: this.bar.y - this.bar.height/4}
+    this.currencyBlueText = this.add.text(this.currencyBlueTextPosition.x, this.currencyBlueTextPosition.y, this.currencyBlue, this.textStyleBlue).setDepth(1);
 
     this.heroBenchMaxSize = 5
     this.heroBenchCurrentSize = 0
@@ -123,12 +125,11 @@ export class Battleground extends Phaser.Scene {
     );
 
     // update UI
-    this.updateBenchText();
+    //this.updateBenchText();
     this.updateCurrencyText();
-
-    this.currencyBlue += 10
-    this.currencyRed += 100
-    console.log(`Blue: ${this.currencyBlue} \n Red: ${this.redBlue}`)
+    // TODO remove and hook up to death event
+    this.currencyBlue += 1
+    this.currencyRed += 10
   }
 
   attackTarget(source, target) {
@@ -212,31 +213,33 @@ export class Battleground extends Phaser.Scene {
     image.setScale(scale.width, scale.height);
   }
 
-  update
-
   updateBenchText() {
+    let newText = ''
+    let textWidth = 0
     // Hero Bench
-    let newText = `${this.heroBenchCurrentSize}/${this.heroBenchMaxSize}`;
+    newText = `${this.heroBenchCurrentSize}/${this.heroBenchMaxSize}`;
     this.heroBenchText.setText(newText);
-    let textWidth = this.heroBenchText.width;
-    heroBenchText.setX(this.heroBench.x - textWidth/2);
+    textWidth = this.heroBenchText.width;
+    this.heroBenchText.setX(this.heroBench.x - textWidth/2);
     // Monster Bench
     newText = `${this.monsterBenchCurrentSize}/${this.monsterBenchMaxSize}`;
     this.monsterBenchText.setText(newText);
     textWidth = this.monsterBenchText.width;
-    monsterBenchText.setX(this.monsterBench.x - textWidth/2);
+    this.monsterBenchText.setX(this.monsterBench.x - textWidth/2);
   }
 
   updateCurrencyText() {
+    let newText = ''
+    let textWidth = 0
     // Blue Currency
-    let newText = `${this.currencyBlue}`;
+    newText = `${this.currencyBlue}`;
     this.currencyBlueText.setText(newText);
-    let textWidth = this.currencyBlueText.width;
-    currencyBlueText.setX(this.currencyBlueText.x - textWidth/2);
+    textWidth = this.currencyBlueText.width;
+    this.currencyBlueText.setX(this.currencyBlueTextPosition.x - textWidth/2);
     // Red Currency
     newText = `${this.currencyRed}`;
     this.currencyRedText.setText(newText);
     textWidth = this.currencyRedText.width;
-    currencyRedText.setX(this.currencyRedText.x - textWidth/2);
+    this.currencyRedText.setX(this.currencyRedTextPosition.x - textWidth/2);
   }
 }
