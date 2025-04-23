@@ -7,5 +7,8 @@ export default class Monster extends Unit {
     this._unitBaseStats = jsonData[unitName]
     super.loadBaseStats();
     scene.add.existing(this);
+    // Relevent UI locations
+    this.bench = scene.bench_monsters
+    this.slots = scene.monsterSlots
   }
 }

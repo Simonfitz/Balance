@@ -33,7 +33,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._spawnY = y;
     this._mostRecentValidPosition = {x:x, y:y}
 
-    // UI locations
+    // Relevent UI locations
     this.bench = scene.bench_heroes
     this.slots = scene.heroSlots
 
@@ -201,7 +201,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   }
 
   snapToPosition() {
-    if (this.x <= this.bench.width) {
+    if (this.x <= this.bench.width || this.x >= this.currentScene.cameras.main.width - this.bench.width) {
       this.sendToBench();
     } else {
       let closestDistance = Infinity;

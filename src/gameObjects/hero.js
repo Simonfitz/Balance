@@ -7,6 +7,8 @@ export default class Hero extends Unit {
     this._unitBaseStats = jsonData[unitName]
     super.loadBaseStats();
     scene.add.existing(this);
-    //scene.physics.add.existing(this);
+    // Relevent UI locations
+    this.bench = scene.bench_heroes
+    this.slots = scene.heroSlots
   }
 }
