@@ -15,6 +15,5 @@ export default class Hero extends Unit {
 
   deathAffects(){
     this.currentScene.currencyBlue += this._value
-    console.log(this.currentScene.currencyBlue);
   }
 }
