@@ -8,7 +8,7 @@ export default class Hero extends Unit {
     super.loadBaseStats();
     scene.add.existing(this);
     // Relevent UI locations
-    this.bench = scene.bench_heroes
+    this.bench = scene.heroBench
     this.slots = scene.heroSlots
   }
 }

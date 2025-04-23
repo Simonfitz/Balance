@@ -34,7 +34,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._mostRecentValidPosition = {x:x, y:y}
 
     // Relevent UI locations
-    this.bench = scene.bench_heroes
+    this.bench = scene.heroBench
     this.slots = scene.heroSlots
 
     // Create health bar
