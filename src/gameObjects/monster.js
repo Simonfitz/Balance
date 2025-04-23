@@ -13,6 +13,28 @@ export default class Monster extends Unit {
     this.currentScene = scene
   }
 
+  sendToField(slot){
+    this.setPosition(slot.x, slot.y);
+    if(!this._isActive){
+      this.currentScene.monsterBenchCurrentSize--;
+    }
+    this.toggleActive(true);
+  }
+
+  sendToBench(){
+    this.currentScene.monsterBenchCurrentSize++;
+    let benchPosition = (this.bench.y - (this.bench.height/2)) + ((this.currentScene.monsterBenchCurrentSize)/(this.currentScene.monsterBenchMaxSize) * this.bench.height)
+    this.setPosition(this.bench.x, benchPosition);
+    this.toggleActive(false);
+  }
+
+  isBenchFull(){
+    if(this.currentScene.monsterBenchCurrentSize < this.currentScene.monsterBenchMaxSize){
+      return false;
+    }
+    return true;
+  }
+
   deathAffects(){
     this.currentScene.currencyRed += this._value;
   }

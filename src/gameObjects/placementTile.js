@@ -49,44 +49,4 @@ export default class PlacementTile extends Phaser.GameObjects.Container {
     // Add to scene
     scene.add.existing(this);
   }
-
-  // Method to update the tile's appearance
-  updateTexture(texture, frame = 0) {
-    this.currentTexture = texture;
-    this.currentFrame = frame;
-
-    // Stop any existing animation
-    this.tileSprite.stop();
-
-    // Set the new texture
-    this.tileSprite.setTexture(texture);
-
-    // Scale the sprite to fit within the tile bounds
-    const scale = Math.min(TILE.SIZE / this.tileSprite.width, TILE.SIZE / this.tileSprite.height);
-    this.tileSprite.setScale(scale);
-
-    // If this is a spritesheet (like mageIdle), create and play the animation
-    if (texture === 'mageIdle') {
-      if (!this.scene.anims.exists('mageIdle')) {
-        this.scene.anims.create({
-          key: 'mageIdle',
-          frames: this.scene.anims.generateFrameNumbers(texture, {
-            start: 0,
-            end: -1,
-          }),
-          frameRate: 10,
-          repeat: -1,
-        });
-      }
-      this.tileSprite.play('mageIdle');
-    }
-  }
-
-  // Method to get current texture and frame
-  getCurrentTexture() {
-    return {
-      texture: this.currentTexture,
-      frame: this.currentFrame,
-    };
-  }
 }

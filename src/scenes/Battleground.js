@@ -72,7 +72,7 @@ export class Battleground extends Phaser.Scene {
     this.monsterBenchMaxSize = 5
     this.monsterBenchCurrentSize = 0
     this.textStyleMonsterBench = { fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff', stroke: '#AC7D0C', strokeThickness: 3 };
-    this.heroBenchText = this.add.text(this.monsterBench.x - this.textStyleMonsterBench.fontSize, this.monsterBench.y + this.monsterBench.height/2, `${this.monsterBenchCurrentSize}/${this.monsterBenchMaxSize}`, this.textStyleMonsterBench).setDepth(1);
+    this.monsterBenchText = this.add.text(this.monsterBench.x - this.textStyleMonsterBench.fontSize, this.monsterBench.y + this.monsterBench.height/2, `${this.monsterBenchCurrentSize}/${this.monsterBenchMaxSize}`, this.textStyleMonsterBench).setDepth(1);
 
     // Create left group (5 tiles)
     this.createTileGroup({
@@ -125,7 +125,8 @@ export class Battleground extends Phaser.Scene {
     );
 
     // update UI
-    //this.updateBenchText();
+    console.log(this.heroBenchCurrentSize)
+    this.updateBenchText();
     this.updateCurrencyText();
   }
 
