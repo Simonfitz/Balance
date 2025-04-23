@@ -18,9 +18,9 @@ export class Battleground extends Phaser.Scene {
     // load the background image
     this.load.image('background_battleground', 'assets/backgrounds/background_battleground.png');
     // load the UI elememts
-    this.load.image('bench_heroes', 'assets/UI/bench.png');
-    this.load.image('bench_monsters', 'assets/UI/bench.png');
-    this.load.image('bar', 'assets/backgrounds/bar.png');
+    this.load.image('heroBench', 'assets/UI/bench.png');
+    this.load.image('monsterBench', 'assets/UI/bench.png');
+    this.load.image('bar', 'assets/UI/bar.png');
 
     this.load.image('flare', 'assets/misc/flare.png');
   
@@ -45,20 +45,34 @@ export class Battleground extends Phaser.Scene {
     this.resizeToWindow(this.background_battleground);
 
     // Load UI
-    this.bar = this.add.tileSprite(screenCenterX, 100, 0, 0, 'bar');
+    this.bar = this.add.tileSprite(screenCenterX, 50, 0, 0, 'bar');
     this.bar.setScale(1.00, 0.75);
-    this.bench_heroes = this.add.tileSprite(50, screenCenterY, 0, 0, 'bench_heroes');
-    this.bench_heroes.setScale(0.75, 1.2);
-    this.bench_monsters = this.add.tileSprite((screenCenterX*2)-50, screenCenterY, 0, 0, 'bench_monsters');
-    this.bench_monsters.setScale(0.75, 1.2);
 
-    this.currencyRed = 1000;
-    const textStyleRed = { fontFamily: 'Arial Black', fontSize: 38, color: '#660000', stroke: '#000000', strokeThickness: 5 };
-    this.scoreText = this.add.text(screenCenterX - this.bar.width/2, 40, this.currencyRed, textStyleRed).setDepth(1);
+    this.heroBench = this.add.tileSprite(50, screenCenterY, 0, 0, 'heroBench');
+    this.heroBench.setScale(0.75, 1.2);
 
-    this.currencyBlue = 1000;
-    const textStyleBlue = { fontFamily: 'Arial Black', fontSize: 38, color: '#000066', stroke: '#000000', strokeThickness: 5 };
-    this.scoreText = this.add.text(screenCenterX + this.bar.width/2, 40, this.currencyBlue, textStyleBlue).setDepth(1);
+    this.monsterBench = this.add.tileSprite((screenCenterX*2)-50, screenCenterY, 0, 0, 'monsterBench');
+    this.monsterBench.setScale(0.75, 1.2);
+
+    this.currencyRed = 0;
+    this.textStyleRed = { fontFamily: 'Arial Black', fontSize: 38, color: '#660000', stroke: '#AC7D0C', strokeThickness: 3 };
+    this.currencyRedTextPosition = {x: this.bar.x - this.bar.width/2 - this.textStyleRed.fontSize*2, y: this.bar.y - this.bar.height/4}
+    this.currencyRedText = this.add.text(this.currencyRedTextPosition.x, this.currencyRedTextPosition.y, this.currencyRed, this.textStyleRed).setDepth(1);
+
+    this.currencyBlue = 0;
+    this.textStyleBlue = { fontFamily: 'Arial Black', fontSize: 38, color: '#000066', stroke: '#AC7D0C', strokeThickness: 3 };
+    this.currencyBlueTextPosition = {x: this.bar.x + this.bar.width/2 + this.textStyleBlue.fontSize*2, y: this.bar.y - this.bar.height/4}
+    this.currencyBlueText = this.add.text(this.currencyBlueTextPosition.x, this.currencyBlueTextPosition.y, this.currencyBlue, this.textStyleBlue).setDepth(1);
+
+    this.heroBenchMaxSize = 5
+    this.heroBenchCurrentSize = 0
+    this.textStyleHeroBench = { fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff', stroke: '#AC7D0C', strokeThickness: 3 };
+    this.heroBenchText = this.add.text(this.heroBench.x - this.textStyleHeroBench.fontSize, this.heroBench.y + this.heroBench.height/2, `${this.heroBenchCurrentSize}/${this.heroBenchMaxSize}`, this.textStyleHeroBench).setDepth(1);
+
+    this.monsterBenchMaxSize = 5
+    this.monsterBenchCurrentSize = 0
+    this.textStyleMonsterBench = { fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff', stroke: '#AC7D0C', strokeThickness: 3 };
+    this.heroBenchText = this.add.text(this.monsterBench.x - this.textStyleMonsterBench.fontSize, this.monsterBench.y + this.monsterBench.height/2, `${this.monsterBenchCurrentSize}/${this.monsterBenchMaxSize}`, this.textStyleMonsterBench).setDepth(1);
 
     // Create left group (5 tiles)
     this.createTileGroup({
@@ -109,6 +123,13 @@ export class Battleground extends Phaser.Scene {
         element, this.heroArray[Math.floor(Math.random()*this.heroArray.length)]
       )
     );
+
+    // update UI
+    //this.updateBenchText();
+    this.updateCurrencyText();
+    // TODO remove and hook up to death event
+    this.currencyBlue += 1
+    this.currencyRed += 10
   }
 
   attackTarget(source, target) {
@@ -190,5 +211,35 @@ export class Battleground extends Phaser.Scene {
     const height = this.cameras.main.height;
     let scale = { height: (height / image.height) * ratio, width: (width / image.width) * ratio };
     image.setScale(scale.width, scale.height);
+  }
+
+  updateBenchText() {
+    let newText = ''
+    let textWidth = 0
+    // Hero Bench
+    newText = `${this.heroBenchCurrentSize}/${this.heroBenchMaxSize}`;
+    this.heroBenchText.setText(newText);
+    textWidth = this.heroBenchText.width;
+    this.heroBenchText.setX(this.heroBench.x - textWidth/2);
+    // Monster Bench
+    newText = `${this.monsterBenchCurrentSize}/${this.monsterBenchMaxSize}`;
+    this.monsterBenchText.setText(newText);
+    textWidth = this.monsterBenchText.width;
+    this.monsterBenchText.setX(this.monsterBench.x - textWidth/2);
+  }
+
+  updateCurrencyText() {
+    let newText = ''
+    let textWidth = 0
+    // Blue Currency
+    newText = `${this.currencyBlue}`;
+    this.currencyBlueText.setText(newText);
+    textWidth = this.currencyBlueText.width;
+    this.currencyBlueText.setX(this.currencyBlueTextPosition.x - textWidth/2);
+    // Red Currency
+    newText = `${this.currencyRed}`;
+    this.currencyRedText.setText(newText);
+    textWidth = this.currencyRedText.width;
+    this.currencyRedText.setX(this.currencyRedTextPosition.x - textWidth/2);
   }
 }
