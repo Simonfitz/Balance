@@ -1,6 +1,7 @@
 import PlacementTile from '../gameObjects/placementTile.js';
 import Hero from '../gameObjects/hero.js';
 import Monster from '../gameObjects/monster.js';
+import CurrencyBank from '../gameObjects/currencyBank.js';
 import { TILE } from '../constants.js';
 
 export class Battleground extends Phaser.Scene {
@@ -13,6 +14,7 @@ export class Battleground extends Phaser.Scene {
   }
 
   preload() {
+    this.load.image('circle', 'assets/misc/circle.png');
     // Load the add button image
     this.load.image('addButton', 'assets/UI/slot.png');
     // load the background image
@@ -37,7 +39,7 @@ export class Battleground extends Phaser.Scene {
   create() {
     const screenCenterX = this.cameras.main.width / 2;
     const screenCenterY = this.cameras.main.height / 2;
-
+  
     // Load Background image
     this.background_battleground = this.add
       .tileSprite(0, 0, 0, 0, 'background_battleground')
@@ -53,6 +55,10 @@ export class Battleground extends Phaser.Scene {
 
     this.monsterBench = this.add.tileSprite((screenCenterX*2)-50, screenCenterY, 0, 0, 'monsterBench');
     this.monsterBench.setScale(0.75, 1.2);
+
+    this.bankBlue = 0;
+    this.bankRed = 0;
+    this.bankCap = 200;
 
     this.currencyRed = 0;
     this.textStyleRed = { fontFamily: 'Arial Black', fontSize: 38, color: '#660000', stroke: '#AC7D0C', strokeThickness: 3 };
@@ -105,6 +111,7 @@ export class Battleground extends Phaser.Scene {
       moveToY: 50
     });
     this.emitter.stop();
+    this.currencyBank = new CurrencyBank(this, screenCenterX,screenCenterY*0.5, 'flare')
   }
 
   update(time, delta) {
@@ -126,6 +133,7 @@ export class Battleground extends Phaser.Scene {
 
     // update UI
     //this.updateBenchText();
+    this.currencyBank.updateBankTint();
     this.updateCurrencyText();
   }
 

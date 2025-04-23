@@ -14,7 +14,6 @@ export default class Monster extends Unit {
   }
 
   deathAffects(){
-    this.currentScene.currencyRed += this._value;
-    console.log(this.currentScene.currencyRed);
+    this.currentScene.currencyBank.addRed(this._value);
   }
 }
