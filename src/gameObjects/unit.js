@@ -172,7 +172,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
       this.sendToBench();
       return true;
     }
-    if (this.slots.some(obj => obj === newPosition)){
+    if (this.slots.some(obj => obj === newPosition) && newPosition._isEmpty === true){
       this.sendToField(newPosition)
       return true;
     }

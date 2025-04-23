@@ -1,6 +1,7 @@
 import PlacementTile from '../gameObjects/placementTile.js';
 import Hero from '../gameObjects/hero.js';
 import Monster from '../gameObjects/monster.js';
+import GenerateUnitButton from '../gameObjects/generateUnitButton.js'
 import { TILE } from '../constants.js';
 
 export class Battleground extends Phaser.Scene {
@@ -14,12 +15,13 @@ export class Battleground extends Phaser.Scene {
 
   preload() {
     // Load the add button image
-    this.load.image('addButton', 'assets/UI/slot.png');
+    this.load.image('emptySlot', 'assets/UI/slot.png');
+    this.load.image('addButton', 'assets/UI/add.png')
     // load the background image
     this.load.image('background_battleground', 'assets/backgrounds/background_battleground.png');
     // load the UI elememts
-    this.load.image('heroBench', 'assets/UI/bench.png');
-    this.load.image('monsterBench', 'assets/UI/bench.png');
+    this.load.image('heroBench', 'assets/UI/heroBench.png');
+    this.load.image('monsterBench', 'assets/UI/monsterBench.png');
     this.load.image('bar', 'assets/UI/bar.png');
 
     this.load.image('flare', 'assets/misc/flare.png');
@@ -97,14 +99,18 @@ export class Battleground extends Phaser.Scene {
       verticalOffset: TILE.VERTICAL_OFFSET,
       isRightGroup: true,
     });
-    this.emitter = this.add.particles(0, 0, 'flare', {
-      lifespan: 500,
-      //gravity: 500,
-      blendMode: 'ADD',
-      moveToX: 50,
-      moveToY: 50
-    });
-    this.emitter.stop();
+
+    // New Unit Button
+    this.generateHeroButton = new GenerateUnitButton(this, this.heroBench.x, this.heroBenchText.y + this.heroBenchText.height + 30, 'addButton', 0, () => {
+        let newHero = this.initHero(0, 0)
+        newHero.sendToBench()
+        })
+
+    // New Unit Button
+    this.generateMonsterButton = new GenerateUnitButton(this, this.monsterBench.x, this.monsterBenchText.y + this.monsterBenchText.height + 30, 'addButton', 0, () => {
+        let newMonster = this.initMonster(0, 0)
+        newMonster.sendToBench()
+        })
   }
 
   update(time, delta) {
@@ -125,7 +131,6 @@ export class Battleground extends Phaser.Scene {
     );
 
     // update UI
-    console.log(this.heroBenchCurrentSize)
     this.updateBenchText();
     this.updateCurrencyText();
   }
@@ -184,12 +189,12 @@ export class Battleground extends Phaser.Scene {
       }
       
       if(isRightGroup){
-        this.monsterSlots.push(new PlacementTile(this, x, y, 'addButton', 0, () => {
+        this.monsterSlots.push(new PlacementTile(this, x, y, 'emptySlot', 0, () => {
         this.initMonster(x, y)
         }))
       }
       else{
-        this.heroSlots.push(new PlacementTile(this, x, y, 'addButton', 0, () => {
+        this.heroSlots.push(new PlacementTile(this, x, y, 'emptySlot', 0, () => {
         this.initHero(x, y)
       }))
       }
@@ -197,11 +202,15 @@ export class Battleground extends Phaser.Scene {
   }
 
   initHero(x, y) {
-    this.heroArray.push(new Hero(this, x, y, 'mageIdle', 0, 'mage'));
+    let newHero = new Hero(this, x, y, 'mageIdle', 0, 'mage');
+    this.heroArray.push(newHero);
+    return newHero;
   }
 
   initMonster(x, y) {
-    this.monsterArray.push(new Monster(this, x, y, 'demon', 0, 'demon'));
+    let newMonster = new Monster(this, x, y, 'demon', 0, 'demon');
+    this.monsterArray.push(newMonster);
+    return newMonster;
   }
 
   resizeToWindow(image, ratio = 1) {

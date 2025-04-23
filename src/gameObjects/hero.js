@@ -22,10 +22,12 @@ export default class Hero extends Unit {
   }
 
   sendToBench(){
-    this.currentScene.heroBenchCurrentSize++;
+    if(this._isActive){
+      this.currentScene.heroBenchCurrentSize++;
+      this.toggleActive(false);
+    }  
     let benchPosition = (this.bench.y - (this.bench.height/2)) + ((this.currentScene.heroBenchCurrentSize)/(this.currentScene.heroBenchMaxSize) * this.bench.height)
     this.setPosition(this.bench.x, benchPosition);
-    this.toggleActive(false);
   }
 
   isBenchFull(){

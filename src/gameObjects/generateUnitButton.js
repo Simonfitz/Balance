@@ -1,11 +1,9 @@
-import { TILE } from '../constants.js';
-
-export default class PlacementTile extends Phaser.GameObjects.Container {
+export default class GenerateUnitButton extends Phaser.GameObjects.Container {
   constructor(scene, x, y, texture, frame, callback) {
     super(scene, x, y);
 
     // tile slot status
-    this._isEmpty = true;
+    this.empty = true;
 
     // Store the initial texture and frame
     this.currentTexture = texture;
@@ -16,14 +14,14 @@ export default class PlacementTile extends Phaser.GameObjects.Container {
     this.add(this.tileSprite);
 
     // Scale the sprite to fit within the tile bounds
-    const scale = Math.min(TILE.SIZE / this.tileSprite.width, TILE.SIZE / this.tileSprite.height);
+    const scale = Math.min(50 / this.tileSprite.width, 50 / this.tileSprite.height);
     this.tileSprite.setScale(scale);
 
     // Store the callback
     this.callback = callback;
 
     // Make the container interactive
-    this.setSize(TILE.SIZE, TILE.SIZE); // Fixed size for the container
+    this.setSize(100, 100); // Fixed size for the container
     this.setInteractive({ useHandCursor: true });
 
     // Add hover and press effects

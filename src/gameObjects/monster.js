@@ -15,6 +15,7 @@ export default class Monster extends Unit {
 
   sendToField(slot){
     this.setPosition(slot.x, slot.y);
+    slot._isEmpty = false; //todo fix
     if(!this._isActive){
       this.currentScene.monsterBenchCurrentSize--;
     }
