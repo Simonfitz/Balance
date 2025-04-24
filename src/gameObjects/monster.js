@@ -1,5 +1,6 @@
 import Unit from './unit.js';
 import jsonData from '../../assets/resources/unit_specs/monster.json' with { type: 'json' };
+import { ImpBehavior } from './behaviors/ImpBehavior.js';
 
 export default class Monster extends Unit {
   constructor(scene, x, y, texture, frame, unitName) {
@@ -9,6 +10,17 @@ export default class Monster extends Unit {
     this.bench = scene.monsterBench;
     this.slots = scene.monsterSlots;
     this.currentScene = scene;
+
+    // Set unit-specific behavior
+    switch (unitName) {
+      case 'imp':
+        this.setBehavior(new ImpBehavior());
+        break;
+      // Add other monster behaviors here
+      default:
+        // Keep default behavior
+        break;
+    }
 
     // Then load stats
     this._unitBaseStats = jsonData[unitName];
@@ -27,10 +39,20 @@ export default class Monster extends Unit {
     const slotIndex = this.slots.indexOf(slot);
     if (slotIndex === -1) return;
 
-    if (!this._isActive) {
+    // If already on the field, mark the current slot as empty
+    if (this._isActive) {
+      const currentSlotIndex = this.slots.findIndex((s) => s._isEmpty === false && s !== slot);
+      if (currentSlotIndex !== -1) {
+        this.slots[currentSlotIndex]._isEmpty = true;
+        this.currentScene.updateMonsterFieldState(currentSlotIndex, null);
+      }
+    } else {
+      // Coming from bench
       this.currentScene.monsterBenchCurrentSize--;
       this.currentScene.updateMonsterBenchPosition(this._benchPositionIndex, -1, this);
       this._benchPositionIndex = -1;
+      // Update GameState - moving from bench to field
+      this.currentScene.gameState.moveUnit(this, 'bench', 'field');
     }
 
     this.setPosition(slot.x, slot.y);
@@ -54,6 +76,8 @@ export default class Monster extends Unit {
       }
       this.currentScene.monsterBenchCurrentSize++;
       this.toggleActive(false);
+      // Update GameState - moving from field to bench
+      this.currentScene.gameState.moveUnit(this, 'field', 'bench');
     }
 
     // Find first available bench position
@@ -91,5 +115,22 @@ export default class Monster extends Unit {
    */
   deathAffects() {
     this.currentScene.currencyBank.addRed(this._value);
+  }
+
+  canAttack() {
+    if (this._attackCharge >= this._attackTime) {
+      this._attackCharge = 0;
+      // Calculate imp damage bonus if this is an imp
+      if (this._unitName === 'imp') {
+        const impCount = this.currentScene.monsterArray.filter(
+          (monster) => monster._unitName === 'imp' && monster._isActive
+        ).length;
+        // Each imp beyond the first adds 20% damage
+        const damageBonus = 1.0 + (impCount - 1) * 0.2;
+        return this._baseDamage * damageBonus;
+      }
+      return this._baseDamage;
+    }
+    return 0;
   }
 }
