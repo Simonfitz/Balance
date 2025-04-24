@@ -47,6 +47,8 @@ export default class Hero extends Unit {
     if (this._isActive) {
       const slotIndex = this.slots.findIndex((slot) => slot.x === this.x && slot.y === this.y);
       if (slotIndex !== -1) {
+        // Mark the slot as empty and update field state
+        this.slots[slotIndex]._isEmpty = true;
         this.currentScene.updateHeroFieldState(slotIndex, null);
       }
       this.currentScene.heroBenchCurrentSize++;

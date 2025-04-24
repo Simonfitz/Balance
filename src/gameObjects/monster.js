@@ -48,6 +48,8 @@ export default class Monster extends Unit {
     if (this._isActive) {
       const slotIndex = this.slots.findIndex((slot) => slot.x === this.x && slot.y === this.y);
       if (slotIndex !== -1) {
+        // Mark the slot as empty and update field state
+        this.slots[slotIndex]._isEmpty = true;
         this.currentScene.updateMonsterFieldState(slotIndex, null);
       }
       this.currentScene.monsterBenchCurrentSize++;
