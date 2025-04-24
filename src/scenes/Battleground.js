@@ -4,8 +4,6 @@ import Monster from '../gameObjects/monster.js';
 import CurrencyBank from '../gameObjects/currencyBank.js';
 import GenerateUnitButton from '../gameObjects/generateUnitButton.js';
 import { TILE } from '../constants.js';
-import { UIManager } from '../managers/UIManager.js';
-import { CombatManager } from '../managers/CombatManager.js';
 
 export class Battleground extends Phaser.Scene {
   constructor() {
@@ -59,12 +57,8 @@ export class Battleground extends Phaser.Scene {
     const screenCenterX = this.cameras.main.width / 2;
     const screenCenterY = this.cameras.main.height / 2;
 
-    // Initialise managers
-    this.uiManager = new UIManager(this);
-    this.combatManager = new CombatManager(this);
-
     this.initialiseBackground(screenCenterX, screenCenterY);
-    this.uiManager.initialiseUI(screenCenterX, screenCenterY);
+    this.initialiseUI(screenCenterX, screenCenterY);
     this.initialiseCurrencySystem(screenCenterX, screenCenterY);
     this.initialiseBenches(screenCenterX, screenCenterY);
     this.initialisePlacementTiles(screenCenterX, screenCenterY);
@@ -82,6 +76,14 @@ export class Battleground extends Phaser.Scene {
   }
 
   /**
+   * Initialises the UI elements
+   */
+  initialiseUI(screenCenterX, screenCenterY) {
+    this.bar = this.add.tileSprite(screenCenterX, 50, 0, 0, 'bar');
+    this.bar.setScale(1.0, 0.75);
+  }
+
+  /**
    * Initialises the currency system
    */
   initialiseCurrencySystem(screenCenterX, screenCenterY) {
@@ -90,7 +92,46 @@ export class Battleground extends Phaser.Scene {
     this.bankCap = 200;
 
     this.currencyRed = 0;
+    this.textStyleRed = {
+      fontFamily: 'Arial Black',
+      fontSize: 38,
+      color: '#660000',
+      stroke: '#AC7D0C',
+      strokeThickness: 3,
+    };
+    this.currencyRedTextPosition = {
+      x: this.bar.x - this.bar.width / 2 - this.textStyleRed.fontSize * 2,
+      y: this.bar.y - this.bar.height / 4,
+    };
+    this.currencyRedText = this.add
+      .text(
+        this.currencyRedTextPosition.x,
+        this.currencyRedTextPosition.y,
+        this.currencyRed,
+        this.textStyleRed
+      )
+      .setDepth(1);
+
     this.currencyBlue = 0;
+    this.textStyleBlue = {
+      fontFamily: 'Arial Black',
+      fontSize: 38,
+      color: '#000066',
+      stroke: '#AC7D0C',
+      strokeThickness: 3,
+    };
+    this.currencyBlueTextPosition = {
+      x: this.bar.x + this.bar.width / 2 + this.textStyleBlue.fontSize * 2,
+      y: this.bar.y - this.bar.height / 4,
+    };
+    this.currencyBlueText = this.add
+      .text(
+        this.currencyBlueTextPosition.x,
+        this.currencyBlueTextPosition.y,
+        this.currencyBlue,
+        this.textStyleBlue
+      )
+      .setDepth(1);
 
     this.currencyBank = new CurrencyBank(this, screenCenterX, screenCenterY * 0.5, 'flare');
   }
@@ -110,8 +151,39 @@ export class Battleground extends Phaser.Scene {
 
     this.heroBenchMaxSize = 5;
     this.heroBenchCurrentSize = 0;
+    this.textStyleHeroBench = {
+      fontFamily: 'Arial Black',
+      fontSize: 38,
+      color: '#ffffff',
+      stroke: '#AC7D0C',
+      strokeThickness: 3,
+    };
+    this.heroBenchText = this.add
+      .text(
+        this.heroBench.x - this.textStyleHeroBench.fontSize,
+        this.heroBench.y + this.heroBench.height / 2,
+        `${this.heroBenchCurrentSize}/${this.heroBenchMaxSize}`,
+        this.textStyleHeroBench
+      )
+      .setDepth(1);
+
     this.monsterBenchMaxSize = 5;
     this.monsterBenchCurrentSize = 0;
+    this.textStyleMonsterBench = {
+      fontFamily: 'Arial Black',
+      fontSize: 38,
+      color: '#ffffff',
+      stroke: '#AC7D0C',
+      strokeThickness: 3,
+    };
+    this.monsterBenchText = this.add
+      .text(
+        this.monsterBench.x - this.textStyleMonsterBench.fontSize,
+        this.monsterBench.y + this.monsterBench.height / 2,
+        `${this.monsterBenchCurrentSize}/${this.monsterBenchMaxSize}`,
+        this.textStyleMonsterBench
+      )
+      .setDepth(1);
   }
 
   /**
@@ -150,7 +222,7 @@ export class Battleground extends Phaser.Scene {
     this.generateHeroButton = new GenerateUnitButton(
       this,
       this.heroBench.x,
-      this.heroBench.y + this.heroBench.height + 30,
+      this.heroBenchText.y + this.heroBenchText.height + 30,
       'addButton',
       0,
       () => {
@@ -164,7 +236,7 @@ export class Battleground extends Phaser.Scene {
     this.generateMonsterButton = new GenerateUnitButton(
       this,
       this.monsterBench.x,
-      this.monsterBench.y + this.monsterBench.height + 30,
+      this.monsterBenchText.y + this.monsterBenchText.height + 30,
       'addButton',
       0,
       () => {
@@ -183,7 +255,7 @@ export class Battleground extends Phaser.Scene {
    */
   update(time, delta) {
     this.updateUnits(time, delta);
-    this.combatManager.handleCombat();
+    this.handleCombat();
     this.updateUI();
   }
 
@@ -198,11 +270,50 @@ export class Battleground extends Phaser.Scene {
   }
 
   /**
+   * Handles combat between heroes and monsters
+   */
+  handleCombat() {
+    this.heroArray.forEach((hero) => {
+      const target = this.getRandomTarget(this.monsterArray);
+      this.processAttack(hero, target);
+    });
+
+    this.monsterArray.forEach((monster) => {
+      const target = this.getRandomTarget(this.heroArray);
+      this.processAttack(monster, target);
+    });
+  }
+
+  /**
    * Updates all UI elements
    */
   updateUI() {
-    this.uiManager.updateBenchTexts(this.heroBenchCurrentSize, this.monsterBenchCurrentSize);
-    this.uiManager.updateCurrencyTexts(this.currencyRed, this.currencyBlue);
+    this.updateBenchText();
+    this.updateCurrencyText();
+  }
+
+  /**
+   * Gets a random target from the provided array
+   * @param {Array} targets - Array of potential targets
+   * @returns {Object|null} Random target or null if no valid targets
+   */
+  getRandomTarget(targets) {
+    if (targets.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * targets.length);
+    return targets[randomIndex];
+  }
+
+  /**
+   * Processes an attack between two units
+   * @param {Object} source - The attacking unit
+   * @param {Object} target - The target unit
+   */
+  processAttack(source, target) {
+    if (!source || !target) return;
+    const damage = source.canAttack();
+    if (damage > 0) {
+      target.takeDamage(damage);
+    }
   }
 
   /**
@@ -291,5 +402,21 @@ export class Battleground extends Phaser.Scene {
    */
   resizeToWindow(image, ratio = 1) {
     image.setDisplaySize(this.cameras.main.width * ratio, this.cameras.main.height * ratio);
+  }
+
+  /**
+   * Updates the bench size text displays
+   */
+  updateBenchText() {
+    this.heroBenchText.setText(`${this.heroBenchCurrentSize}/${this.heroBenchMaxSize}`);
+    this.monsterBenchText.setText(`${this.monsterBenchCurrentSize}/${this.monsterBenchMaxSize}`);
+  }
+
+  /**
+   * Updates the currency text displays
+   */
+  updateCurrencyText() {
+    this.currencyRedText.setText(this.currencyRed);
+    this.currencyBlueText.setText(this.currencyBlue);
   }
 }
