@@ -14,66 +14,79 @@ export class Battleground extends Phaser.Scene {
     this.monsterSlots = [];
   }
 
+  /**
+   * Loads all required assets for the scene
+   */
   preload() {
-    // Load the add button image
+    // Load UI assets
     this.load.image('emptySlot', 'assets/UI/slot.png');
     this.load.image('addButton', 'assets/UI/add.png');
-
-    // load the background image
     this.load.image('background_battleground', 'assets/backgrounds/background_battleground.png');
-
-    // load the UI elememts
     this.load.image('heroBench', 'assets/UI/bench.png');
     this.load.image('monsterBench', 'assets/UI/bench.png');
     this.load.image('bar', 'assets/UI/bar.png');
 
-    // load particle textures
+    // Load particle textures
     this.load.image('flare', 'assets/misc/flare.png');
     this.load.image('circle', 'assets/misc/circle.png');
 
-    // load the hero sprite
+    // Load hero spritesheets
     this.load.spritesheet('cleric', 'assets/heroes/cleric/Idle.png', {
-      frameWidth: 75, // Adjust these values based on your actual spritesheet
-      frameHeight: 70, // Adjust these values based on your actual spritesheet
+      frameWidth: 75,
+      frameHeight: 70,
     });
     this.load.spritesheet('fighter', 'assets/heroes/fighter/Idle.png', {
-      frameWidth: 75, // Adjust these values based on your actual spritesheet
-      frameHeight: 70, // Adjust these values based on your actual spritesheet
+      frameWidth: 75,
+      frameHeight: 70,
     });
     this.load.spritesheet('mage', 'assets/heroes/mage/Idle.png', {
-      frameWidth: 75, // Adjust these values based on your actual spritesheet
-      frameHeight: 70, // Adjust these values based on your actual spritesheet
+      frameWidth: 75,
+      frameHeight: 70,
     });
 
-    // load the monster sprite
+    // Load monster sprites
     this.load.image('imp', 'assets/monsters/Imp/idle.png');
     this.load.image('dragon', 'assets/monsters/Dragon/idle.png');
     this.load.image('necromancer', 'assets/monsters/Necromancer/idle.png');
   }
 
+  /**
+   * Initialises the scene and sets up all game objects
+   */
   create() {
     const screenCenterX = this.cameras.main.width / 2;
     const screenCenterY = this.cameras.main.height / 2;
 
-    // Load Background image
+    this.initialiseBackground(screenCenterX, screenCenterY);
+    this.initialiseUI(screenCenterX, screenCenterY);
+    this.initialiseCurrencySystem(screenCenterX, screenCenterY);
+    this.initialiseBenches(screenCenterX, screenCenterY);
+    this.initialisePlacementTiles(screenCenterX, screenCenterY);
+    this.initialiseUnitButtons(screenCenterX, screenCenterY);
+  }
+
+  /**
+   * Initialises the background image
+   */
+  initialiseBackground(screenCenterX, screenCenterY) {
     this.background_battleground = this.add
       .tileSprite(0, 0, 0, 0, 'background_battleground')
       .setOrigin(0);
     this.resizeToWindow(this.background_battleground);
+  }
 
-    // Load UI
+  /**
+   * Initialises the UI elements
+   */
+  initialiseUI(screenCenterX, screenCenterY) {
     this.bar = this.add.tileSprite(screenCenterX, 50, 0, 0, 'bar');
     this.bar.setScale(1.0, 0.75);
+  }
 
-    this.heroBench = this.add.tileSprite(50, screenCenterY, 0, 0, 'heroBench');
-    this.monsterBench = this.add.tileSprite(
-      screenCenterX * 2 - 50,
-      screenCenterY,
-      0,
-      0,
-      'monsterBench'
-    );
-
+  /**
+   * Initialises the currency system
+   */
+  initialiseCurrencySystem(screenCenterX, screenCenterY) {
     this.bankBlue = 0;
     this.bankRed = 0;
     this.bankCap = 200;
@@ -120,6 +133,22 @@ export class Battleground extends Phaser.Scene {
       )
       .setDepth(1);
 
+    this.currencyBank = new CurrencyBank(this, screenCenterX, screenCenterY * 0.5, 'flare');
+  }
+
+  /**
+   * Initialises the hero and monster benches
+   */
+  initialiseBenches(screenCenterX, screenCenterY) {
+    this.heroBench = this.add.tileSprite(50, screenCenterY, 0, 0, 'heroBench');
+    this.monsterBench = this.add.tileSprite(
+      screenCenterX * 2 - 50,
+      screenCenterY,
+      0,
+      0,
+      'monsterBench'
+    );
+
     this.heroBenchMaxSize = 5;
     this.heroBenchCurrentSize = 0;
     this.textStyleHeroBench = {
@@ -155,12 +184,17 @@ export class Battleground extends Phaser.Scene {
         this.textStyleMonsterBench
       )
       .setDepth(1);
+  }
 
+  /**
+   * Initialises the placement tiles for units
+   */
+  initialisePlacementTiles(screenCenterX, screenCenterY) {
     // Create left group (5 tiles)
     this.createTileGroup({
       startIndex: 0,
       endIndex: 5,
-      baseX: 300, // Distance from left edge
+      baseX: 300,
       centerY: screenCenterY,
       tileSize: TILE.SIZE,
       padding: TILE.PADDING,
@@ -172,17 +206,19 @@ export class Battleground extends Phaser.Scene {
     this.createTileGroup({
       startIndex: 5,
       endIndex: 10,
-      baseX: this.cameras.main.width - 300, // Distance from right edge
+      baseX: this.cameras.main.width - 300,
       centerY: screenCenterY,
       tileSize: TILE.SIZE,
       padding: TILE.PADDING,
       verticalOffset: TILE.VERTICAL_OFFSET,
       isRightGroup: true,
     });
+  }
 
-    this.currencyBank = new CurrencyBank(this, screenCenterX, screenCenterY * 0.5, 'flare');
-
-    // New Unit Button
+  /**
+   * Initialises the unit generation buttons
+   */
+  initialiseUnitButtons(screenCenterX, screenCenterY) {
     this.generateHeroButton = new GenerateUnitButton(
       this,
       this.heroBench.x,
@@ -192,12 +228,11 @@ export class Battleground extends Phaser.Scene {
       () => {
         if (this.heroBenchCurrentSize < this.heroBenchMaxSize) {
           let newHero = this.initRandomHero(0, 0);
-          newHero.sendToBench();
+          newHero.moveToBench();
         }
       }
     );
 
-    // New Unit Button
     this.generateMonsterButton = new GenerateUnitButton(
       this,
       this.monsterBench.x,
@@ -207,7 +242,7 @@ export class Battleground extends Phaser.Scene {
       () => {
         if (this.monsterBenchCurrentSize < this.monsterBenchMaxSize) {
           let newMonster = this.initRandomMonster(0, 0);
-          newMonster.sendToBench();
+          newMonster.moveToBench();
         }
       }
     );
@@ -215,41 +250,34 @@ export class Battleground extends Phaser.Scene {
 
   /**
    * Updates the game state each frame
-   * - Updates all units
-   * - Handles combat between units
-   * - Updates UI elements
    * @param {number} time - The current time
    * @param {number} delta - The time elapsed since last frame in milliseconds
    */
   update(time, delta) {
-    this.updateUnits();
+    this.updateUnits(time, delta);
     this.handleCombat();
     this.updateUI();
   }
 
   /**
    * Updates all units in the game
+   * @param {number} time - The current time
+   * @param {number} delta - The time elapsed since last frame in milliseconds
    */
-  updateUnits() {
-    // Update heroes
+  updateUnits(time, delta) {
     this.heroArray.forEach((hero) => hero.update(time, delta));
-    // Update monsters
     this.monsterArray.forEach((monster) => monster.update(time, delta));
   }
 
   /**
    * Handles combat between heroes and monsters
-   * - Heroes attack random monsters
-   * - Monsters attack random heroes
    */
   handleCombat() {
-    // Heroes attack monsters
     this.heroArray.forEach((hero) => {
       const target = this.getRandomTarget(this.monsterArray);
       this.processAttack(hero, target);
     });
 
-    // Monsters attack heroes
     this.monsterArray.forEach((monster) => {
       const target = this.getRandomTarget(this.heroArray);
       this.processAttack(monster, target);
@@ -260,7 +288,6 @@ export class Battleground extends Phaser.Scene {
    * Updates all UI elements
    */
   updateUI() {
-    this.currencyBank.updateBankTint();
     this.updateBenchText();
     this.updateCurrencyText();
   }
@@ -268,33 +295,31 @@ export class Battleground extends Phaser.Scene {
   /**
    * Gets a random target from the provided array
    * @param {Array} targets - Array of potential targets
-   * @returns {Unit|null} A random target or null if no targets available
+   * @returns {Object|null} Random target or null if no valid targets
    */
   getRandomTarget(targets) {
     if (targets.length === 0) return null;
-    return targets[Math.floor(Math.random() * targets.length)];
+    const randomIndex = Math.floor(Math.random() * targets.length);
+    return targets[randomIndex];
   }
 
   /**
-   * Processes an attack from source to target
-   * @param {Unit} source - The attacking unit
-   * @param {Unit} target - The target unit
+   * Processes an attack between two units
+   * @param {Object} source - The attacking unit
+   * @param {Object} target - The target unit
    */
   processAttack(source, target) {
-    if (!target || !target._isActive) return;
-
+    if (!source || !target) return;
     const damage = source.canAttack();
     if (damage > 0) {
-      // Create visual effects
-      target.emitter.moveToX = target.x;
-      target.emitter.moveToY = target.y;
-      target.emitter.explode(10, source.x, source.y);
-
-      // Apply damage
       target.takeDamage(damage);
     }
   }
 
+  /**
+   * Creates a group of placement tiles
+   * @param {Object} config - Configuration object for tile group
+   */
   createTileGroup({
     startIndex,
     endIndex,
@@ -306,110 +331,92 @@ export class Battleground extends Phaser.Scene {
     isRightGroup,
   }) {
     for (let i = startIndex; i < endIndex; i++) {
-      // Calculate position based on index within the group
-      const groupIndex = i - startIndex;
-      let x, y;
+      const row = Math.floor((i - startIndex) / 2);
+      const col = (i - startIndex) % 2;
+      const x = baseX + col * (tileSize + padding);
+      const y = centerY + row * (tileSize + verticalOffset);
 
-      if (groupIndex < 3) {
-        // First column of 3 tiles
-        // For right group, this is the right column
-        // For left group, this is the left column
-        x = isRightGroup ? baseX + groupIndex * padding : baseX - groupIndex * padding;
-        y = centerY - tileSize + tileSize * groupIndex + verticalOffset;
-      } else {
-        // Second column of 2 tiles
-        // For right group, this is the left column
-        // For left group, this is the right column
-        x = isRightGroup
-          ? baseX - tileSize - (groupIndex - 3) * padding
-          : baseX + tileSize + (groupIndex - 3) * padding;
-
-        // Center the column of 2 with the column of 3
-        const column3Height = 3 * tileSize;
-        const column2Height = 2 * tileSize;
-        const verticalOffsetFor2 = (column3Height - column2Height) / 2;
-        y =
-          centerY -
-          tileSize -
-          tileSize * (groupIndex - 3) +
-          verticalOffset +
-          verticalOffsetFor2 * 3;
-      }
-
+      const tile = new PlacementTile(this, x, y, 'emptySlot');
       if (isRightGroup) {
-        this.monsterSlots.push(
-          new PlacementTile(this, x, y, 'emptySlot', 0, () => {
-            this.initRandomMonster(x, y);
-          })
-        );
+        this.monsterSlots.push(tile);
       } else {
-        this.heroSlots.push(
-          new PlacementTile(this, x, y, 'emptySlot', 0, () => {
-            this.initRandomHero(x, y);
-          })
-        );
+        this.heroSlots.push(tile);
       }
     }
   }
 
+  /**
+   * Initialises a random hero at the specified position
+   * @param {number} x - X coordinate
+   * @param {number} y - Y coordinate
+   * @returns {Hero} The created hero
+   */
   initRandomHero(x, y) {
-    const heroList = ['cleric', 'fighter', 'mage'];
-    const rand = Math.floor(Math.random() * 3);
-    return this.initHero(x, y, heroList[rand]);
+    const heroTypes = ['cleric', 'fighter', 'mage'];
+    const randomType = heroTypes[Math.floor(Math.random() * heroTypes.length)];
+    return this.initHero(x, y, randomType);
   }
 
+  /**
+   * Initialises a random monster at the specified position
+   * @param {number} x - X coordinate
+   * @param {number} y - Y coordinate
+   * @returns {Monster} The created monster
+   */
   initRandomMonster(x, y) {
-    const monsterList = ['imp', 'dragon', 'necromancer'];
-    const rand = Math.floor(Math.random() * 3);
-    return this.initMonster(x, y, monsterList[rand]);
+    const monsterTypes = ['imp', 'dragon', 'necromancer'];
+    const randomType = monsterTypes[Math.floor(Math.random() * monsterTypes.length)];
+    return this.initMonster(x, y, randomType);
   }
 
+  /**
+   * Initialises a specific hero type
+   * @param {number} x - X coordinate
+   * @param {number} y - Y coordinate
+   * @param {string} heroName - Type of hero to create
+   * @returns {Hero} The created hero
+   */
   initHero(x, y, heroName) {
-    let newHero = new Hero(this, x, y, heroName, 0, heroName);
-    this.heroArray.push(newHero);
-    return newHero;
+    const hero = new Hero(this, x, y, heroName);
+    this.heroArray.push(hero);
+    return hero;
   }
 
+  /**
+   * Initialises a specific monster type
+   * @param {number} x - X coordinate
+   * @param {number} y - Y coordinate
+   * @param {string} monsterName - Type of monster to create
+   * @returns {Monster} The created monster
+   */
   initMonster(x, y, monsterName) {
-    let newMonster = new Monster(this, x, y, monsterName, 0, monsterName);
-    this.monsterArray.push(newMonster);
-    return newMonster;
+    const monster = new Monster(this, x, y, monsterName);
+    this.monsterArray.push(monster);
+    return monster;
   }
 
+  /**
+   * Resizes an image to fit the window
+   * @param {Phaser.GameObjects.Image} image - Image to resize
+   * @param {number} ratio - Scaling ratio
+   */
   resizeToWindow(image, ratio = 1) {
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
-    let scale = { height: (height / image.height) * ratio, width: (width / image.width) * ratio };
-    image.setScale(scale.width, scale.height);
+    image.setDisplaySize(this.cameras.main.width * ratio, this.cameras.main.height * ratio);
   }
 
+  /**
+   * Updates the bench size text displays
+   */
   updateBenchText() {
-    let newText = '';
-    let textWidth = 0;
-    // Hero Bench
-    newText = `${this.heroBenchCurrentSize}/${this.heroBenchMaxSize}`;
-    this.heroBenchText.setText(newText);
-    textWidth = this.heroBenchText.width;
-    this.heroBenchText.setX(this.heroBench.x - textWidth / 2);
-    // Monster Bench
-    newText = `${this.monsterBenchCurrentSize}/${this.monsterBenchMaxSize}`;
-    this.monsterBenchText.setText(newText);
-    textWidth = this.monsterBenchText.width;
-    this.monsterBenchText.setX(this.monsterBench.x - textWidth / 2);
+    this.heroBenchText.setText(`${this.heroBenchCurrentSize}/${this.heroBenchMaxSize}`);
+    this.monsterBenchText.setText(`${this.monsterBenchCurrentSize}/${this.monsterBenchMaxSize}`);
   }
 
+  /**
+   * Updates the currency text displays
+   */
   updateCurrencyText() {
-    let newText = '';
-    let textWidth = 0;
-    // Blue Currency
-    newText = `${this.currencyBlue}`;
-    this.currencyBlueText.setText(newText);
-    textWidth = this.currencyBlueText.width;
-    this.currencyBlueText.setX(this.currencyBlueTextPosition.x - textWidth / 2);
-    // Red Currency
-    newText = `${this.currencyRed}`;
-    this.currencyRedText.setText(newText);
-    textWidth = this.currencyRedText.width;
-    this.currencyRedText.setX(this.currencyRedTextPosition.x - textWidth / 2);
+    this.currencyRedText.setText(this.currencyRed);
+    this.currencyBlueText.setText(this.currencyBlue);
   }
 }
