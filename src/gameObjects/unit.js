@@ -6,6 +6,8 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
     this.currentScene = scene;
+
+    // Initialise particle emitter for attack effects
     this.emitter = this.scene.add.particles(0, 0, 'flare', {
       lifespan: 200,
       gravity: 500,
@@ -15,7 +17,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     });
     this.emitter.stop();
 
-    // Initial default stats
+    // Initialise unit stats
     this._unitBaseStats = {};
     this._unitName = unitName;
     this._health = 100;
@@ -28,38 +30,28 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._isDead = false;
     this._isActive = true;
 
-    // Store initial spawn position
+    // Store position data
     this._spawnX = x;
     this._spawnY = y;
     this._mostRecentValidPosition = { x: x, y: y };
 
-    // Relevent UI locations
+    // Set UI references
     this.bench = scene.heroBench;
     this.slots = scene.heroSlots;
 
-    // Create health bar
+    // Initialise health bar
     this.healthBar = new HealthBar(scene, x, y - 50, 40, 5);
-    this.healthBar.setDepth(1); // Make sure health bar is above the unit
+    this.healthBar.setDepth(1);
 
+    // Setup drag and drop functionality
     this.setInteractive({ useHandCursor: true, draggable: true });
     this.on('drag', (pointer, dragX, dragY) => this.setPosition(dragX, dragY));
 
-    // Add hover and press effects
-    this.on('pointerover', () => {
-      this.setTint(0xcccccc); // Lighten the sprite on hover
-    });
-
-    this.on('pointerout', () => {
-      this.clearTint(); // Remove tint when not hovering
-    });
-
-    this.on('pointerdown', () => {
-      this.setTint(0x999999); // Darken the sprite when pressed
-    });
-
-    this.on('pointerup', () => {
-      this.updatePosition();
-    });
+    // Setup hover and click effects
+    this.on('pointerover', () => this.setTint(0xcccccc));
+    this.on('pointerout', () => this.clearTint());
+    this.on('pointerdown', () => this.setTint(0x999999));
+    this.on('pointerup', () => this.updatePosition());
   }
 
   // Getters & Setters
@@ -69,7 +61,6 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
   set health(value) {
     this._health = Math.max(0, value);
-    // Update health bar
     this.healthBar.setHealth(this._health / this._maxHealth);
     if (this._health === 0 && !this._isDead) {
       this.die();
@@ -92,13 +83,17 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._respawnTime = value;
   }
 
-  // Damage method
+  /**
+   * Applies damage to the unit and triggers death if health reaches zero
+   */
   takeDamage(amount) {
     if (this._isDead) return;
     this.health -= amount;
   }
 
-  // Die method
+  /**
+   * Handles unit death - hides the unit and schedules respawn
+   */
   die() {
     this._isDead = true;
     this._isActive = false;
@@ -107,17 +102,19 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this.healthBar.setVisible(false);
     this.deathAffects();
 
-    // Schedule respawn
-    this.scene.time.delayedCall(this._respawnTime * 1000, () => {
-      this.respawn();
-    });
+    this.scene.time.delayedCall(this._respawnTime * 1000, () => this.respawn());
   }
 
+  /**
+   * Override in child classes to handle unit-specific death effects
+   */
   deathAffects() {
-    // See Hero Monster classes
+    // Implemented in Hero and Monster classes
   }
 
-  // Respawn method
+  /**
+   * Respawns the unit with full health at its last valid position
+   */
   respawn() {
     this._isDead = false;
     this._isActive = true;
@@ -127,13 +124,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this.setActive(true);
     this.healthBar.setVisible(true);
     this.healthBar.setHealth(1);
-    // this.play('mageIdle');
   }
 
   /**
-   * Updates the unit's state each frame
-   * @param {number} time - The current time
-   * @param {number} delta - The time elapsed since last frame in milliseconds
+   * Updates unit state each frame
    */
   update(time, delta) {
     if (this.healthBar) {
@@ -145,8 +139,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * Checks if the unit can attack and returns the damage amount
-   * @returns {number} The damage amount if the unit can attack, 0 otherwise
+   * Checks if the unit can attack and returns damage if ready
    */
   canAttack() {
     if (this._attackCharge >= this._attackTime) {
@@ -156,14 +149,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     return 0;
   }
 
-  // Override destroy method to clean up health bar
-  destroy() {
-    if (this.healthBar) {
-      this.healthBar.destroy();
-    }
-    super.destroy();
-  }
-
+  /**
+   * Updates the unit's position based on drag and drop
+   */
   updatePosition() {
     const newPosition = this.snapToPosition();
     if (this.isPositionValid(newPosition)) {
@@ -174,19 +162,24 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  /**
+   * Validates if a position is a valid placement for the unit
+   */
   isPositionValid(newPosition) {
     if (newPosition === this.bench && !this.isBenchFull()) {
-      this.sendToBench();
+      this.moveToBench();
       return true;
     }
     if (this.slots.some((obj) => obj === newPosition) && newPosition._isEmpty === true) {
-      this.sendToField(newPosition);
+      this.moveToField(newPosition);
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 
+  /**
+   * Toggles the unit's active state and manages its health bar
+   */
   toggleActive(state) {
     if (state === false) {
       this._isActive = false;
@@ -194,41 +187,49 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     } else {
       if (this._isActive === false) {
         this.healthBar = new HealthBar(this.currentScene, this.x, this.y - 50, 40, 5);
-        this.healthBar.setDepth(1); // Make sure health bar is above the unit
+        this.healthBar.setDepth(1);
       }
       this._isActive = true;
     }
   }
 
+  /**
+   * Finds the closest valid position for the unit
+   */
   snapToPosition() {
-    // Return the closest object
     if (
       this.x <= this.bench.width ||
       this.x >= this.currentScene.cameras.main.width - this.bench.width
     ) {
       return this.bench;
-    } else {
-      let closestDistance = Infinity;
-      let closestSlot = null;
-
-      this.slots.forEach((element) => {
-        const dist = this.getDistance(this.x, this.y, element.x, element.y);
-        if (dist < closestDistance) {
-          closestDistance = dist;
-          closestSlot = element;
-        }
-      });
-
-      return closestSlot;
     }
+
+    let closestDistance = Infinity;
+    let closestSlot = null;
+
+    this.slots.forEach((slot) => {
+      const dist = this.getDistance(this.x, this.y, slot.x, slot.y);
+      if (dist < closestDistance) {
+        closestDistance = dist;
+        closestSlot = slot;
+      }
+    });
+
+    return closestSlot;
   }
 
+  /**
+   * Calculates the distance between two points
+   */
   getDistance(x1, y1, x2, y2) {
     const dx = x2 - x1;
     const dy = y2 - y1;
     return Math.sqrt(dx * dx + dy * dy);
   }
 
+  /**
+   * Loads unit stats from the base stats configuration
+   */
   loadBaseStats() {
     this._maxHealth = this._unitBaseStats.maxHealth;
     this._health = this._maxHealth;
@@ -236,5 +237,15 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._respawnTime = this._unitBaseStats.respawnTime;
     this._baseDamage = this._unitBaseStats.baseDamage;
     this._value = this._unitBaseStats.maxHealth / 20.0;
+  }
+
+  /**
+   * Cleans up resources when the unit is destroyed
+   */
+  destroy() {
+    if (this.healthBar) {
+      this.healthBar.destroy();
+    }
+    super.destroy();
   }
 }

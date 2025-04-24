@@ -7,13 +7,18 @@ export default class Hero extends Unit {
     this._unitBaseStats = jsonData[unitName];
     super.loadBaseStats();
     scene.add.existing(this);
-    // Relevent UI locations
+
+    // Set UI references
     this.bench = scene.heroBench;
     this.slots = scene.heroSlots;
     this.currentScene = scene;
   }
 
-  sendToField(slot) {
+  /**
+   * Moves the hero to a specific slot on the field
+   * Updates bench size if the hero was previously on the bench
+   */
+  moveToField(slot) {
     this.setPosition(slot.x, slot.y);
     if (!this._isActive) {
       this.currentScene.heroBenchCurrentSize--;
@@ -21,26 +26,41 @@ export default class Hero extends Unit {
     this.toggleActive(true);
   }
 
-  sendToBench() {
+  /**
+   * Moves the hero to the bench
+   * Updates bench size and calculates position based on current bench occupancy
+   */
+  moveToBench() {
     if (this._isActive) {
       this.currentScene.heroBenchCurrentSize++;
       this.toggleActive(false);
     }
-    let benchPosition =
-      this.bench.y -
-      this.bench.height / 2 +
-      (this.currentScene.heroBenchCurrentSize / this.currentScene.heroBenchMaxSize) *
-        this.bench.height;
+
+    const benchPosition = this.calculateBenchPosition();
     this.setPosition(this.bench.x, benchPosition);
   }
 
-  isBenchFull() {
-    if (this.currentScene.heroBenchCurrentSize < this.currentScene.heroBenchMaxSize) {
-      return false;
-    }
-    return true;
+  /**
+   * Calculates the vertical position on the bench based on current bench occupancy
+   */
+  calculateBenchPosition() {
+    const benchHeight = this.bench.height;
+    const benchTop = this.bench.y - benchHeight / 2;
+    const benchFillRatio =
+      this.currentScene.heroBenchCurrentSize / this.currentScene.heroBenchMaxSize;
+    return benchTop + benchFillRatio * benchHeight;
   }
 
+  /**
+   * Checks if the hero bench has reached its maximum capacity
+   */
+  isBenchFull() {
+    return this.currentScene.heroBenchCurrentSize >= this.currentScene.heroBenchMaxSize;
+  }
+
+  /**
+   * Handles death effects - adds blue currency to the bank based on the hero's value
+   */
   deathAffects() {
     this.currentScene.currencyBank.addBlue(this._value);
   }

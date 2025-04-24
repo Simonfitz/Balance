@@ -7,39 +7,58 @@ export default class Monster extends Unit {
     this._unitBaseStats = jsonData[unitName];
     super.loadBaseStats();
     scene.add.existing(this);
-    // Relevent UI locations
+
+    // Set UI references
     this.bench = scene.monsterBench;
     this.slots = scene.monsterSlots;
     this.currentScene = scene;
   }
 
-  sendToField(slot) {
+  /**
+   * Moves the monster to a specific slot on the field
+   * Updates bench size if the monster was previously on the bench
+   */
+  moveToField(slot) {
     this.setPosition(slot.x, slot.y);
-    slot._isEmpty = false; //todo fix
+    slot._isEmpty = false;
     if (!this._isActive) {
       this.currentScene.monsterBenchCurrentSize--;
     }
     this.toggleActive(true);
   }
 
-  sendToBench() {
+  /**
+   * Moves the monster to the bench
+   * Updates bench size and calculates position based on current bench occupancy
+   */
+  moveToBench() {
     this.currentScene.monsterBenchCurrentSize++;
-    let benchPosition =
-      this.bench.y -
-      this.bench.height / 2 +
-      (this.currentScene.monsterBenchCurrentSize / this.currentScene.monsterBenchMaxSize) *
-        this.bench.height;
+    const benchPosition = this.calculateBenchPosition();
     this.setPosition(this.bench.x, benchPosition);
     this.toggleActive(false);
   }
 
-  isBenchFull() {
-    if (this.currentScene.monsterBenchCurrentSize < this.currentScene.monsterBenchMaxSize) {
-      return false;
-    }
-    return true;
+  /**
+   * Calculates the vertical position on the bench based on current bench occupancy
+   */
+  calculateBenchPosition() {
+    const benchHeight = this.bench.height;
+    const benchTop = this.bench.y - benchHeight / 2;
+    const benchFillRatio =
+      this.currentScene.monsterBenchCurrentSize / this.currentScene.monsterBenchMaxSize;
+    return benchTop + benchFillRatio * benchHeight;
   }
 
+  /**
+   * Checks if the monster bench has reached its maximum capacity
+   */
+  isBenchFull() {
+    return this.currentScene.monsterBenchCurrentSize >= this.currentScene.monsterBenchMaxSize;
+  }
+
+  /**
+   * Handles death effects - adds red currency to the bank based on the monster's value
+   */
   deathAffects() {
     this.currentScene.currencyBank.addRed(this._value);
   }
