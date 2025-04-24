@@ -213,12 +213,12 @@ export class Battleground extends Phaser.Scene {
       
       if(isRightGroup){
         this.monsterSlots.push(new PlacementTile(this, x, y, 'emptySlot', 0, () => {
-        this.initMonster(x, y)
+        this.initRandomMonster(x, y)
         }))
       }
       else{
         this.heroSlots.push(new PlacementTile(this, x, y, 'emptySlot', 0, () => {
-        this.initHero(x, y)
+        this.initRandomHero(x, y)
       }))
       }
     }
