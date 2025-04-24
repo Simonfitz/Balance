@@ -199,12 +199,18 @@ export class Battleground extends Phaser.Scene {
    * Initialises the placement tiles for units
    */
   initialisePlacementTiles(screenCenterX, screenCenterY) {
+    // Add vertical offset to move tiles down
+    const verticalOffset = 50; // Adjust this value to move tiles up or down
+
+    // Calculate column width (tile size + padding)
+    const columnWidth = TILE.SIZE + TILE.PADDING;
+
     // Create left group (5 tiles)
     this.createTileGroup({
       startIndex: 0,
       endIndex: 5,
-      baseX: 300,
-      centerY: screenCenterY,
+      baseX: 250, // Base position for left column
+      centerY: screenCenterY + verticalOffset,
       tileSize: TILE.SIZE,
       padding: TILE.PADDING,
       verticalOffset: TILE.VERTICAL_OFFSET,
@@ -215,8 +221,8 @@ export class Battleground extends Phaser.Scene {
     this.createTileGroup({
       startIndex: 5,
       endIndex: 10,
-      baseX: this.cameras.main.width - 300,
-      centerY: screenCenterY,
+      baseX: this.cameras.main.width - 250 - columnWidth, // Account for column width when positioning from right edge
+      centerY: screenCenterY + verticalOffset,
       tileSize: TILE.SIZE,
       padding: TILE.PADDING,
       verticalOffset: TILE.VERTICAL_OFFSET,
@@ -310,11 +316,26 @@ export class Battleground extends Phaser.Scene {
     verticalOffset,
     isRightGroup,
   }) {
+    // Calculate total height needed for all tiles
+    const totalHeight = (endIndex - startIndex) * (tileSize + verticalOffset);
+    const startY = centerY - totalHeight / 2;
+
     for (let i = startIndex; i < endIndex; i++) {
-      const row = Math.floor((i - startIndex) / 2);
-      const col = (i - startIndex) % 2;
-      const x = baseX + col * (tileSize + padding);
-      const y = centerY + row * (tileSize + verticalOffset);
+      const relativeIndex = i - startIndex;
+      const row = relativeIndex;
+
+      // Calculate x position based on whether it's the left or right group
+      // and whether it's an even or odd row
+      let x;
+      if (isRightGroup) {
+        // Right group: even rows (0, 2, 4) go to the right column
+        x = baseX + (row % 2 === 0 ? tileSize + padding : 0);
+      } else {
+        // Left group: even rows (0, 2, 4) go to the left column
+        x = baseX + (row % 2 === 0 ? 0 : tileSize + padding);
+      }
+
+      const y = startY + row * (tileSize + verticalOffset);
 
       const tile = new PlacementTile(this, x, y, 'emptySlot');
       if (isRightGroup) {
