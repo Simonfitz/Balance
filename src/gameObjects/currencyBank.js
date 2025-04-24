@@ -8,9 +8,9 @@ export default class CurrencyBank extends Phaser.Physics.Arcade.Sprite {
     });
     this.currentScene = scene;
     this.emitter = this.scene.add.particles(x, y, 'circle', {
-      lifespan: 500,
-      speed: 200,
-      angle: { min: -110, max: -70 },
+      lifespan: 2000,
+      speed: 50,
+      angle: { min: -115, max: -65 },
       scale: { start: 1, end: 0, ease: 'sine.out' },
       blendMode: 'ADD',
       emitting: true
@@ -24,15 +24,23 @@ export default class CurrencyBank extends Phaser.Physics.Arcade.Sprite {
 
   updateBankTint(){
     if (this.redBank+this.blueBank>=this.bankLimit){
-      this.emitter.lifespan = 1000;
+      this.emitter.lifespan = 4000;
     }
     else {
-      this.emitter.lifespan = 500;
-    }
-    let red = Math.floor(255*this.redBank/this.bankLimit);
-    let blue = Math.floor(255*this.blueBank/this.bankLimit);
-    let tint = 65536*red+blue+256*Math.max(Math.floor((blue)/(red+4)),0)
-    this.emitter.particleTint = 65536*red+blue+256*Math.max(Math.floor((blue)/(red*red*4)),0);
+      this.emitter.lifespan = 2000;
+    } 
+    //let fullness = Math.min((this.redBank+this.blueBank)/this.bankLimit, .5)
+    let red = Math.min(Math.floor(150*this.redBank/this.bankLimit), 50);
+    let blue = Math.min(Math.floor(150*this.blueBank/this.bankLimit), 50);
+    let green = Math.floor(Math.min(5.0, blue/2.0+red/5.0))
+    console.log("RGB: "+ red+", " + green + ", " + blue)
+    console.log(this.redBank+":"+this.blueBank)
+    //let tint = 65536*red+blue+256*Math.max(Math.floor((blue)/(red+4)),0)
+    //let ratio = .3;
+    //let red = Math.floor(ratio*ratio*50);
+    //let blue = Math.floor((1-ratio)*(1-ratio)*50);
+    //console.log((65536*red+blue).toString(16))
+    this.emitter.particleTint = 65536*red+blue+256*green;
   }
 
   cashOutBank(){

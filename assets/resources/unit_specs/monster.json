@@ -1,10 +1,20 @@
 {
-  "demon": {
-    "maxHealth": 100,
-    "attack": 20.0,
+  "imp": {
+    "maxHealth": 50,
     "attackTime": 1.0,
-    "respawnTime": 2.0,
-    "baseDamage": 10.0,
-    "value": 5.0
+    "respawnTime": 1.0,
+    "baseDamage": 20.0
+  },
+  "dragon": {
+    "maxHealth": 200,
+    "attackTime": 0.05,
+    "respawnTime": 1.0,
+    "baseDamage": 0.5
+  },
+  "necromancer": {
+    "maxHealth": 100,
+    "attackTime": 1.0,
+    "respawnTime": 1.0,
+    "baseDamage": 10.0
   }
 }

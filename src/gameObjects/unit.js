@@ -227,7 +227,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._attackTime = this._unitBaseStats.attackTime;
     this._respawnTime = this._unitBaseStats.respawnTime;
     this._baseDamage = this._unitBaseStats.baseDamage;
-    this._value = this._unitBaseStats.value
+    this._value = this._unitBaseStats.maxHealth/20.0
   }
 }
 

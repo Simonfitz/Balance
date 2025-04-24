@@ -1,9 +1,20 @@
 {
   "mage": {
+    "maxHealth": 50,
+    "attackTime": 0.5,
+    "respawnTime": 1.0,
+    "baseDamage": 5.0
+  },
+  "cleric": {
+    "maxHealth": 200,
+    "attackTime": 5.0,
+    "respawnTime": 1.0,
+    "baseDamage": 50.0
+  },
+  "fighter": {
     "maxHealth": 100,
     "attackTime": 1.0,
     "respawnTime": 1.0,
-    "baseDamage": 10.0,
-    "value": 5.0
+    "baseDamage": 10.0
   }
 }

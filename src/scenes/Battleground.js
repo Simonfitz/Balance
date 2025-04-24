@@ -32,15 +32,15 @@ export class Battleground extends Phaser.Scene {
     this.load.image('circle', 'assets/misc/circle.png');
   
     // load the hero sprite
-    this.load.spritesheet('clericIdle', 'assets/heroes/cleric/Idle.png', {
+    this.load.spritesheet('cleric', 'assets/heroes/cleric/Idle.png', {
       frameWidth: 75, // Adjust these values based on your actual spritesheet
       frameHeight: 70, // Adjust these values based on your actual spritesheet
     });
-    this.load.spritesheet('fighterIdle', 'assets/heroes/fighter/Idle.png', {
+    this.load.spritesheet('fighter', 'assets/heroes/fighter/Idle.png', {
       frameWidth: 75, // Adjust these values based on your actual spritesheet
       frameHeight: 70, // Adjust these values based on your actual spritesheet
     });
-    this.load.spritesheet('mageIdle', 'assets/heroes/mage/Idle.png', {
+    this.load.spritesheet('mage', 'assets/heroes/mage/Idle.png', {
       frameWidth: 75, // Adjust these values based on your actual spritesheet
       frameHeight: 70, // Adjust these values based on your actual spritesheet
     });
@@ -225,25 +225,25 @@ export class Battleground extends Phaser.Scene {
   }
 
   initRandomHero(x, y){
-    const textureList = ['clericIdle', 'fighterIdle', 'mageIdle']
+    const heroList = ['cleric', 'fighter', 'mage']
     const rand = Math.floor(Math.random() * 3);
-    return this.initHero(x, y, textureList[rand])
+    return this.initHero(x, y, heroList[rand])
   }
 
   initRandomMonster(x, y){
-    const textureList = ['imp', 'dragon', 'necromancer']
+    const monsterList = ['imp', 'dragon', 'necromancer']
     const rand = Math.floor(Math.random() * 3);
-    return this.initMonster(x, y, textureList[rand])
+    return this.initMonster(x, y, monsterList[rand])
   }
 
-  initHero(x, y, texture) {
-    let newHero = new Hero(this, x, y, texture, 0, 'mage');
+  initHero(x, y, heroName) {
+    let newHero = new Hero(this, x, y, heroName, 0, heroName);
     this.heroArray.push(newHero);
     return newHero;
   }
 
-  initMonster(x, y, texture) {
-    let newMonster = new Monster(this, x, y, texture, 0, 'demon');
+  initMonster(x, y, monsterName) {
+    let newMonster = new Monster(this, x, y, monsterName, 0, monsterName);
     this.monsterArray.push(newMonster);
     return newMonster;
   }
