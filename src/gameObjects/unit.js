@@ -4,7 +4,10 @@ import HealthBar from './healthBar.js';
 export default class Unit extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture, frame, unitName) {
     super(scene, x, y, texture, frame);
+
+    // Add to scene and set initial position
     scene.add.existing(this);
+    this.setPosition(x, y);
     this.currentScene = scene;
 
     // Initialise particle emitter for attack effects
@@ -33,7 +36,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     // Store position data
     this._spawnX = x;
     this._spawnY = y;
-    this._mostRecentValidPosition = { x: x, y: y };
+    this._mostRecentValidPosition = { x, y };
 
     // Set UI references
     this.bench = scene.heroBench;
@@ -45,7 +48,12 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
 
     // Setup drag and drop functionality
     this.setInteractive({ useHandCursor: true, draggable: true });
-    this.on('drag', (pointer, dragX, dragY) => this.setPosition(dragX, dragY));
+    this.on('drag', (pointer, dragX, dragY) => {
+      this.setPosition(dragX, dragY);
+      if (this.healthBar) {
+        this.healthBar.setPosition(dragX, dragY - 50);
+      }
+    });
 
     // Setup hover and click effects
     this.on('pointerover', () => this.setTint(0xcccccc));

@@ -4,6 +4,8 @@ import Monster from '../gameObjects/monster.js';
 import CurrencyBank from '../gameObjects/currencyBank.js';
 import GenerateUnitButton from '../gameObjects/generateUnitButton.js';
 import { TILE } from '../constants.js';
+import { UIManager } from '../managers/UIManager.js';
+import { CombatManager } from '../managers/CombatManager.js';
 
 export class Battleground extends Phaser.Scene {
   constructor() {
@@ -12,6 +14,12 @@ export class Battleground extends Phaser.Scene {
     this.monsterArray = [];
     this.heroSlots = [];
     this.monsterSlots = [];
+
+    // Track bench and field state
+    this.heroBenchPositions = [];
+    this.monsterBenchPositions = [];
+    this.heroFieldState = new Map(); // Maps slot index to unit
+    this.monsterFieldState = new Map(); // Maps slot index to unit
   }
 
   /**
@@ -57,10 +65,21 @@ export class Battleground extends Phaser.Scene {
     const screenCenterX = this.cameras.main.width / 2;
     const screenCenterY = this.cameras.main.height / 2;
 
+    // Initialise managers
+    this.uiManager = new UIManager(this);
+    this.combatManager = new CombatManager(this);
+
+    // Initialise game components in correct order
     this.initialiseBackground(screenCenterX, screenCenterY);
-    this.initialiseUI(screenCenterX, screenCenterY);
     this.initialiseCurrencySystem(screenCenterX, screenCenterY);
+
+    // Create benches before UI that depends on them
     this.initialiseBenches(screenCenterX, screenCenterY);
+
+    // Now initialise UI with benches available
+    this.uiManager.initialiseUI(screenCenterX, screenCenterY);
+
+    // Create the rest of the game components
     this.initialisePlacementTiles(screenCenterX, screenCenterY);
     this.initialiseUnitButtons(screenCenterX, screenCenterY);
   }
@@ -76,14 +95,6 @@ export class Battleground extends Phaser.Scene {
   }
 
   /**
-   * Initialises the UI elements
-   */
-  initialiseUI(screenCenterX, screenCenterY) {
-    this.bar = this.add.tileSprite(screenCenterX, 50, 0, 0, 'bar');
-    this.bar.setScale(1.0, 0.75);
-  }
-
-  /**
    * Initialises the currency system
    */
   initialiseCurrencySystem(screenCenterX, screenCenterY) {
@@ -92,46 +103,7 @@ export class Battleground extends Phaser.Scene {
     this.bankCap = 200;
 
     this.currencyRed = 0;
-    this.textStyleRed = {
-      fontFamily: 'Arial Black',
-      fontSize: 38,
-      color: '#660000',
-      stroke: '#AC7D0C',
-      strokeThickness: 3,
-    };
-    this.currencyRedTextPosition = {
-      x: this.bar.x - this.bar.width / 2 - this.textStyleRed.fontSize * 2,
-      y: this.bar.y - this.bar.height / 4,
-    };
-    this.currencyRedText = this.add
-      .text(
-        this.currencyRedTextPosition.x,
-        this.currencyRedTextPosition.y,
-        this.currencyRed,
-        this.textStyleRed
-      )
-      .setDepth(1);
-
     this.currencyBlue = 0;
-    this.textStyleBlue = {
-      fontFamily: 'Arial Black',
-      fontSize: 38,
-      color: '#000066',
-      stroke: '#AC7D0C',
-      strokeThickness: 3,
-    };
-    this.currencyBlueTextPosition = {
-      x: this.bar.x + this.bar.width / 2 + this.textStyleBlue.fontSize * 2,
-      y: this.bar.y - this.bar.height / 4,
-    };
-    this.currencyBlueText = this.add
-      .text(
-        this.currencyBlueTextPosition.x,
-        this.currencyBlueTextPosition.y,
-        this.currencyBlue,
-        this.textStyleBlue
-      )
-      .setDepth(1);
 
     this.currencyBank = new CurrencyBank(this, screenCenterX, screenCenterY * 0.5, 'flare');
   }
@@ -151,39 +123,76 @@ export class Battleground extends Phaser.Scene {
 
     this.heroBenchMaxSize = 5;
     this.heroBenchCurrentSize = 0;
-    this.textStyleHeroBench = {
-      fontFamily: 'Arial Black',
-      fontSize: 38,
-      color: '#ffffff',
-      stroke: '#AC7D0C',
-      strokeThickness: 3,
-    };
-    this.heroBenchText = this.add
-      .text(
-        this.heroBench.x - this.textStyleHeroBench.fontSize,
-        this.heroBench.y + this.heroBench.height / 2,
-        `${this.heroBenchCurrentSize}/${this.heroBenchMaxSize}`,
-        this.textStyleHeroBench
-      )
-      .setDepth(1);
-
     this.monsterBenchMaxSize = 5;
     this.monsterBenchCurrentSize = 0;
-    this.textStyleMonsterBench = {
-      fontFamily: 'Arial Black',
-      fontSize: 38,
-      color: '#ffffff',
-      stroke: '#AC7D0C',
-      strokeThickness: 3,
-    };
-    this.monsterBenchText = this.add
-      .text(
-        this.monsterBench.x - this.textStyleMonsterBench.fontSize,
-        this.monsterBench.y + this.monsterBench.height / 2,
-        `${this.monsterBenchCurrentSize}/${this.monsterBenchMaxSize}`,
-        this.textStyleMonsterBench
-      )
-      .setDepth(1);
+
+    // Initialize bench positions
+    this.heroBenchPositions = Array(this.heroBenchMaxSize).fill(null);
+    this.monsterBenchPositions = Array(this.monsterBenchMaxSize).fill(null);
+  }
+
+  /**
+   * Gets the first available bench position for a hero
+   * @returns {number} The index of the first available position, or -1 if full
+   */
+  getFirstAvailableHeroBenchPosition() {
+    return this.heroBenchPositions.findIndex((pos) => pos === null);
+  }
+
+  /**
+   * Gets the first available bench position for a monster
+   * @returns {number} The index of the first available position, or -1 if full
+   */
+  getFirstAvailableMonsterBenchPosition() {
+    return this.monsterBenchPositions.findIndex((pos) => pos === null);
+  }
+
+  /**
+   * Updates the bench position state for a hero
+   * @param {number} oldIndex - The previous position index
+   * @param {number} newIndex - The new position index
+   * @param {Hero} hero - The hero being moved
+   */
+  updateHeroBenchPosition(oldIndex, newIndex, hero) {
+    if (oldIndex >= 0) this.heroBenchPositions[oldIndex] = null;
+    if (newIndex >= 0) this.heroBenchPositions[newIndex] = hero;
+  }
+
+  /**
+   * Updates the bench position state for a monster
+   * @param {number} oldIndex - The previous position index
+   * @param {number} newIndex - The new position index
+   * @param {Monster} monster - The monster being moved
+   */
+  updateMonsterBenchPosition(oldIndex, newIndex, monster) {
+    if (oldIndex >= 0) this.monsterBenchPositions[oldIndex] = null;
+    if (newIndex >= 0) this.monsterBenchPositions[newIndex] = monster;
+  }
+
+  /**
+   * Updates the field state for a hero
+   * @param {number} slotIndex - The slot index
+   * @param {Hero} hero - The hero being moved (null to clear)
+   */
+  updateHeroFieldState(slotIndex, hero) {
+    if (hero === null) {
+      this.heroFieldState.delete(slotIndex);
+    } else {
+      this.heroFieldState.set(slotIndex, hero);
+    }
+  }
+
+  /**
+   * Updates the field state for a monster
+   * @param {number} slotIndex - The slot index
+   * @param {Monster} monster - The monster being moved (null to clear)
+   */
+  updateMonsterFieldState(slotIndex, monster) {
+    if (monster === null) {
+      this.monsterFieldState.delete(slotIndex);
+    } else {
+      this.monsterFieldState.set(slotIndex, monster);
+    }
   }
 
   /**
@@ -219,29 +228,39 @@ export class Battleground extends Phaser.Scene {
    * Initialises the unit generation buttons
    */
   initialiseUnitButtons(screenCenterX, screenCenterY) {
+    // Position hero button at the top of the hero bench
     this.generateHeroButton = new GenerateUnitButton(
       this,
       this.heroBench.x,
-      this.heroBenchText.y + this.heroBenchText.height + 30,
+      this.heroBench.y - this.heroBench.height / 2 - 20, // 20 pixels above the bench
       'addButton',
       0,
       () => {
         if (this.heroBenchCurrentSize < this.heroBenchMaxSize) {
-          let newHero = this.initRandomHero(0, 0);
+          const benchPosition =
+            this.heroBench.y +
+            (this.heroBenchCurrentSize / this.heroBenchMaxSize) * this.heroBench.height -
+            this.heroBench.height / 2;
+          let newHero = this.initRandomHero(this.heroBench.x, benchPosition);
           newHero.moveToBench();
         }
       }
     );
 
+    // Position monster button at the top of the monster bench
     this.generateMonsterButton = new GenerateUnitButton(
       this,
       this.monsterBench.x,
-      this.monsterBenchText.y + this.monsterBenchText.height + 30,
+      this.monsterBench.y - this.monsterBench.height / 2 - 20, // 20 pixels above the bench
       'addButton',
       0,
       () => {
         if (this.monsterBenchCurrentSize < this.monsterBenchMaxSize) {
-          let newMonster = this.initRandomMonster(0, 0);
+          const benchPosition =
+            this.monsterBench.y +
+            (this.monsterBenchCurrentSize / this.monsterBenchMaxSize) * this.monsterBench.height -
+            this.monsterBench.height / 2;
+          let newMonster = this.initRandomMonster(this.monsterBench.x, benchPosition);
           newMonster.moveToBench();
         }
       }
@@ -255,7 +274,7 @@ export class Battleground extends Phaser.Scene {
    */
   update(time, delta) {
     this.updateUnits(time, delta);
-    this.handleCombat();
+    this.combatManager.handleCombat();
     this.updateUI();
   }
 
@@ -270,50 +289,11 @@ export class Battleground extends Phaser.Scene {
   }
 
   /**
-   * Handles combat between heroes and monsters
-   */
-  handleCombat() {
-    this.heroArray.forEach((hero) => {
-      const target = this.getRandomTarget(this.monsterArray);
-      this.processAttack(hero, target);
-    });
-
-    this.monsterArray.forEach((monster) => {
-      const target = this.getRandomTarget(this.heroArray);
-      this.processAttack(monster, target);
-    });
-  }
-
-  /**
    * Updates all UI elements
    */
   updateUI() {
-    this.updateBenchText();
-    this.updateCurrencyText();
-  }
-
-  /**
-   * Gets a random target from the provided array
-   * @param {Array} targets - Array of potential targets
-   * @returns {Object|null} Random target or null if no valid targets
-   */
-  getRandomTarget(targets) {
-    if (targets.length === 0) return null;
-    const randomIndex = Math.floor(Math.random() * targets.length);
-    return targets[randomIndex];
-  }
-
-  /**
-   * Processes an attack between two units
-   * @param {Object} source - The attacking unit
-   * @param {Object} target - The target unit
-   */
-  processAttack(source, target) {
-    if (!source || !target) return;
-    const damage = source.canAttack();
-    if (damage > 0) {
-      target.takeDamage(damage);
-    }
+    this.uiManager.updateBenchTexts(this.heroBenchCurrentSize, this.monsterBenchCurrentSize);
+    this.uiManager.updateCurrencyTexts(this.currencyRed, this.currencyBlue);
   }
 
   /**
@@ -377,7 +357,7 @@ export class Battleground extends Phaser.Scene {
    * @returns {Hero} The created hero
    */
   initHero(x, y, heroName) {
-    const hero = new Hero(this, x, y, heroName);
+    const hero = new Hero(this, x, y, heroName, 0, heroName);
     this.heroArray.push(hero);
     return hero;
   }
@@ -390,7 +370,7 @@ export class Battleground extends Phaser.Scene {
    * @returns {Monster} The created monster
    */
   initMonster(x, y, monsterName) {
-    const monster = new Monster(this, x, y, monsterName);
+    const monster = new Monster(this, x, y, monsterName, 0, monsterName);
     this.monsterArray.push(monster);
     return monster;
   }
@@ -402,21 +382,5 @@ export class Battleground extends Phaser.Scene {
    */
   resizeToWindow(image, ratio = 1) {
     image.setDisplaySize(this.cameras.main.width * ratio, this.cameras.main.height * ratio);
-  }
-
-  /**
-   * Updates the bench size text displays
-   */
-  updateBenchText() {
-    this.heroBenchText.setText(`${this.heroBenchCurrentSize}/${this.heroBenchMaxSize}`);
-    this.monsterBenchText.setText(`${this.monsterBenchCurrentSize}/${this.monsterBenchMaxSize}`);
-  }
-
-  /**
-   * Updates the currency text displays
-   */
-  updateCurrencyText() {
-    this.currencyRedText.setText(this.currencyRed);
-    this.currencyBlueText.setText(this.currencyBlue);
   }
 }

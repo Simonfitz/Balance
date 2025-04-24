@@ -3,15 +3,20 @@ import jsonData from '../../assets/resources/unit_specs/monster.json' with { typ
 
 export default class Monster extends Unit {
   constructor(scene, x, y, texture, frame, unitName) {
-    super(scene, x, y, texture, frame);
-    this._unitBaseStats = jsonData[unitName];
-    super.loadBaseStats();
-    scene.add.existing(this);
+    super(scene, x, y, texture, frame, unitName);
 
-    // Set UI references
+    // Set UI references first
     this.bench = scene.monsterBench;
     this.slots = scene.monsterSlots;
     this.currentScene = scene;
+
+    // Then load stats
+    this._unitBaseStats = jsonData[unitName];
+    this.loadBaseStats();
+
+    // Track bench position
+    this._benchPositionIndex = -1;
+    scene.add.existing(this);
   }
 
   /**
@@ -19,11 +24,19 @@ export default class Monster extends Unit {
    * Updates bench size if the monster was previously on the bench
    */
   moveToField(slot) {
-    this.setPosition(slot.x, slot.y);
-    slot._isEmpty = false;
+    const slotIndex = this.slots.indexOf(slot);
+    if (slotIndex === -1) return;
+
     if (!this._isActive) {
       this.currentScene.monsterBenchCurrentSize--;
+      this.currentScene.updateMonsterBenchPosition(this._benchPositionIndex, -1, this);
+      this._benchPositionIndex = -1;
     }
+
+    this.setPosition(slot.x, slot.y);
+    this._mostRecentValidPosition = { x: slot.x, y: slot.y };
+    slot._isEmpty = false;
+    this.currentScene.updateMonsterFieldState(slotIndex, this);
     this.toggleActive(true);
   }
 
@@ -32,10 +45,26 @@ export default class Monster extends Unit {
    * Updates bench size and calculates position based on current bench occupancy
    */
   moveToBench() {
-    this.currentScene.monsterBenchCurrentSize++;
+    if (this._isActive) {
+      const slotIndex = this.slots.findIndex((slot) => slot.x === this.x && slot.y === this.y);
+      if (slotIndex !== -1) {
+        this.currentScene.updateMonsterFieldState(slotIndex, null);
+      }
+      this.currentScene.monsterBenchCurrentSize++;
+      this.toggleActive(false);
+    }
+
+    // Find first available bench position
+    const newPositionIndex = this.currentScene.getFirstAvailableMonsterBenchPosition();
+    if (newPositionIndex === -1) return; // Bench is full
+
+    // Update bench position state
+    this.currentScene.updateMonsterBenchPosition(this._benchPositionIndex, newPositionIndex, this);
+    this._benchPositionIndex = newPositionIndex;
+
     const benchPosition = this.calculateBenchPosition();
     this.setPosition(this.bench.x, benchPosition);
-    this.toggleActive(false);
+    this._mostRecentValidPosition = { x: this.bench.x, y: benchPosition };
   }
 
   /**
@@ -44,8 +73,7 @@ export default class Monster extends Unit {
   calculateBenchPosition() {
     const benchHeight = this.bench.height;
     const benchTop = this.bench.y - benchHeight / 2;
-    const benchFillRatio =
-      this.currentScene.monsterBenchCurrentSize / this.currentScene.monsterBenchMaxSize;
+    const benchFillRatio = this._benchPositionIndex / this.currentScene.monsterBenchMaxSize;
     return benchTop + benchFillRatio * benchHeight;
   }
 
