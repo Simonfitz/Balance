@@ -122,7 +122,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._isDead = false;
     this._isActive = true;
     this._health = this._maxHealth;
-    this.setPosition(this._spawnX, this._spawnY);
+    this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y);
     this.setVisible(true);
     this.setActive(true);
     this.healthBar.setVisible(true);

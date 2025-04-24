@@ -15,27 +15,39 @@ export class Battleground extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('circle', 'assets/misc/circle.png');
     // Load the add button image
     this.load.image('emptySlot', 'assets/UI/slot.png');
     this.load.image('addButton', 'assets/UI/add.png')
+
     // load the background image
     this.load.image('background_battleground', 'assets/backgrounds/background_battleground.png');
+
     // load the UI elememts
-    this.load.image('heroBench', 'assets/UI/heroBench.png');
-    this.load.image('monsterBench', 'assets/UI/monsterBench.png');
+    this.load.image('heroBench', 'assets/UI/bench.png');
+    this.load.image('monsterBench', 'assets/UI/bench.png');
     this.load.image('bar', 'assets/UI/bar.png');
 
+    // load particle textures
     this.load.image('flare', 'assets/misc/flare.png');
   
     // load the hero sprite
+    this.load.spritesheet('clericIdle', 'assets/heroes/cleric/Idle.png', {
+      frameWidth: 75, // Adjust these values based on your actual spritesheet
+      frameHeight: 70, // Adjust these values based on your actual spritesheet
+    });
+    this.load.spritesheet('fighterIdle', 'assets/heroes/fighter/Idle.png', {
+      frameWidth: 75, // Adjust these values based on your actual spritesheet
+      frameHeight: 70, // Adjust these values based on your actual spritesheet
+    });
     this.load.spritesheet('mageIdle', 'assets/heroes/mage/Idle.png', {
-      frameWidth: 64, // Adjust these values based on your actual spritesheet
+      frameWidth: 75, // Adjust these values based on your actual spritesheet
       frameHeight: 70, // Adjust these values based on your actual spritesheet
     });
 
     // load the monster sprite
-    this.load.image('demon', 'assets/monsters/Demon/idle.png');
+    this.load.image('imp', 'assets/monsters/Imp/idle.png');
+    this.load.image('dragon', 'assets/monsters/Dragon/idle.png');
+    this.load.image('necromancer', 'assets/monsters/Necromancer/idle.png');
   }
 
   create() {
@@ -53,10 +65,7 @@ export class Battleground extends Phaser.Scene {
     this.bar.setScale(1.00, 0.75);
 
     this.heroBench = this.add.tileSprite(50, screenCenterY, 0, 0, 'heroBench');
-    this.heroBench.setScale(0.75, 1.2);
-
     this.monsterBench = this.add.tileSprite((screenCenterX*2)-50, screenCenterY, 0, 0, 'monsterBench');
-    this.monsterBench.setScale(0.75, 1.2);
 
     this.bankBlue = 0;
     this.bankRed = 0;
@@ -110,14 +119,18 @@ export class Battleground extends Phaser.Scene {
 
     // New Unit Button
     this.generateHeroButton = new GenerateUnitButton(this, this.heroBench.x, this.heroBenchText.y + this.heroBenchText.height + 30, 'addButton', 0, () => {
-        let newHero = this.initHero(0, 0)
-        newHero.sendToBench()
+        if (this.heroBenchCurrentSize < this.heroBenchMaxSize){
+          let newHero = this.initRandomHero(0, 0)
+          newHero.sendToBench()
+        }
         })
 
     // New Unit Button
     this.generateMonsterButton = new GenerateUnitButton(this, this.monsterBench.x, this.monsterBenchText.y + this.monsterBenchText.height + 30, 'addButton', 0, () => {
-        let newMonster = this.initMonster(0, 0)
-        newMonster.sendToBench()
+        if (this.monsterBenchCurrentSize < this.monsterBenchMaxSize){
+          let newMonster = this.initRandomMonster(0, 0)
+          newMonster.sendToBench()
+        }
         })
   }
 
@@ -210,14 +223,26 @@ export class Battleground extends Phaser.Scene {
     }
   }
 
-  initHero(x, y) {
-    let newHero = new Hero(this, x, y, 'mageIdle', 0, 'mage');
+  initRandomHero(x, y){
+    const textureList = ['clericIdle', 'fighterIdle', 'mageIdle']
+    const rand = Math.floor(Math.random() * 3);
+    return this.initHero(x, y, textureList[rand])
+  }
+
+  initRandomMonster(x, y){
+    const textureList = ['imp', 'dragon', 'necromancer']
+    const rand = Math.floor(Math.random() * 3);
+    return this.initMonster(x, y, textureList[rand])
+  }
+
+  initHero(x, y, texture) {
+    let newHero = new Hero(this, x, y, texture, 0, 'mage');
     this.heroArray.push(newHero);
     return newHero;
   }
 
-  initMonster(x, y) {
-    let newMonster = new Monster(this, x, y, 'demon', 0, 'demon');
+  initMonster(x, y, texture) {
+    let newMonster = new Monster(this, x, y, texture, 0, 'demon');
     this.monsterArray.push(newMonster);
     return newMonster;
   }
