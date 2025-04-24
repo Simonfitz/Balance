@@ -130,7 +130,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     // this.play('mageIdle');
   }
 
-  // Update method to keep health bar position in sync
+  /**
+   * Updates the unit's state each frame
+   * @param {number} time - The current time
+   * @param {number} delta - The time elapsed since last frame in milliseconds
+   */
   update(time, delta) {
     if (this.healthBar) {
       this.healthBar.setPosition(this.x, this.y - 50);
@@ -140,7 +144,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  attackQuery() {
+  /**
+   * Checks if the unit can attack and returns the damage amount
+   * @returns {number} The damage amount if the unit can attack, 0 otherwise
+   */
+  canAttack() {
     if (this._attackCharge >= this._attackTime) {
       this._attackCharge = 0;
       return this._baseDamage;

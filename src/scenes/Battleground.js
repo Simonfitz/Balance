@@ -213,39 +213,85 @@ export class Battleground extends Phaser.Scene {
     );
   }
 
+  /**
+   * Updates the game state each frame
+   * - Updates all units
+   * - Handles combat between units
+   * - Updates UI elements
+   * @param {number} time - The current time
+   * @param {number} delta - The time elapsed since last frame in milliseconds
+   */
   update(time, delta) {
-    // update heroes
-    this.heroArray.forEach((element) => element.update(time, delta));
-    this.heroArray.forEach((element) =>
-      this.attackTarget(
-        element,
-        this.monsterArray[Math.floor(Math.random() * this.monsterArray.length)]
-      )
-    );
+    this.updateUnits();
+    this.handleCombat();
+    this.updateUI();
+  }
 
-    // update monsters
-    this.monsterArray.forEach((element) => element.update(time, delta));
-    this.monsterArray.forEach((element) =>
-      this.attackTarget(element, this.heroArray[Math.floor(Math.random() * this.heroArray.length)])
-    );
+  /**
+   * Updates all units in the game
+   */
+  updateUnits() {
+    // Update heroes
+    this.heroArray.forEach((hero) => hero.update(time, delta));
+    // Update monsters
+    this.monsterArray.forEach((monster) => monster.update(time, delta));
+  }
 
-    // update UI
+  /**
+   * Handles combat between heroes and monsters
+   * - Heroes attack random monsters
+   * - Monsters attack random heroes
+   */
+  handleCombat() {
+    // Heroes attack monsters
+    this.heroArray.forEach((hero) => {
+      const target = this.getRandomTarget(this.monsterArray);
+      this.processAttack(hero, target);
+    });
+
+    // Monsters attack heroes
+    this.monsterArray.forEach((monster) => {
+      const target = this.getRandomTarget(this.heroArray);
+      this.processAttack(monster, target);
+    });
+  }
+
+  /**
+   * Updates all UI elements
+   */
+  updateUI() {
     this.currencyBank.updateBankTint();
     this.updateBenchText();
     this.updateCurrencyText();
   }
 
-  attackTarget(source, target) {
-    if (target) {
-      if (target._isActive) {
-        let damage = source.attackQuery();
-        if (damage > 0) {
-          target.emitter.moveToX = target.x;
-          target.emitter.moveToY = target.y;
-          target.emitter.explode(10, source.x, source.y);
-          target.takeDamage(damage);
-        }
-      }
+  /**
+   * Gets a random target from the provided array
+   * @param {Array} targets - Array of potential targets
+   * @returns {Unit|null} A random target or null if no targets available
+   */
+  getRandomTarget(targets) {
+    if (targets.length === 0) return null;
+    return targets[Math.floor(Math.random() * targets.length)];
+  }
+
+  /**
+   * Processes an attack from source to target
+   * @param {Unit} source - The attacking unit
+   * @param {Unit} target - The target unit
+   */
+  processAttack(source, target) {
+    if (!target || !target._isActive) return;
+
+    const damage = source.canAttack();
+    if (damage > 0) {
+      // Create visual effects
+      target.emitter.moveToX = target.x;
+      target.emitter.moveToY = target.y;
+      target.emitter.explode(10, source.x, source.y);
+
+      // Apply damage
+      target.takeDamage(damage);
     }
   }
 
