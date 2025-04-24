@@ -29,6 +29,7 @@ export class Battleground extends Phaser.Scene {
 
     // load particle textures
     this.load.image('flare', 'assets/misc/flare.png');
+    this.load.image('circle', 'assets/misc/circle.png');
   
     // load the hero sprite
     this.load.spritesheet('clericIdle', 'assets/heroes/cleric/Idle.png', {
