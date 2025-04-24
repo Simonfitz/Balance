@@ -5,16 +5,16 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture, frame, unitName) {
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
-    this.currentScene = scene
+    this.currentScene = scene;
     this.emitter = this.scene.add.particles(0, 0, 'flare', {
       lifespan: 200,
       gravity: 500,
       blendMode: 'ADD',
       moveToX: 50,
-      moveToY: 50
+      moveToY: 50,
     });
     this.emitter.stop();
-    
+
     // Initial default stats
     this._unitBaseStats = {};
     this._unitName = unitName;
@@ -31,11 +31,11 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     // Store initial spawn position
     this._spawnX = x;
     this._spawnY = y;
-    this._mostRecentValidPosition = {x:x, y:y}
+    this._mostRecentValidPosition = { x: x, y: y };
 
     // Relevent UI locations
-    this.bench = scene.heroBench
-    this.slots = scene.heroSlots
+    this.bench = scene.heroBench;
+    this.slots = scene.heroSlots;
 
     // Create health bar
     this.healthBar = new HealthBar(scene, x, y - 50, 40, 5);
@@ -58,7 +58,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     });
 
     this.on('pointerup', () => {
-      this.updatePosition()
+      this.updatePosition();
     });
   }
 
@@ -105,7 +105,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this.setVisible(false);
     this.setActive(false);
     this.healthBar.setVisible(false);
-    this.deathAffects()
+    this.deathAffects();
 
     // Schedule respawn
     this.scene.time.delayedCall(this._respawnTime * 1000, () => {
@@ -113,7 +113,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
-  deathAffects(){
+  deathAffects() {
     // See Hero Monster classes
   }
 
@@ -135,17 +135,17 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     if (this.healthBar) {
       this.healthBar.setPosition(this.x, this.y - 50);
     }
-    if (this._attackCharge<this._attackTime && this._isActive){
-      this._attackCharge+=delta/1000.0;
+    if (this._attackCharge < this._attackTime && this._isActive) {
+      this._attackCharge += delta / 1000.0;
     }
   }
 
   attackQuery() {
-    if (this._attackCharge>=this._attackTime){
-      this._attackCharge=0;
+    if (this._attackCharge >= this._attackTime) {
+      this._attackCharge = 0;
       return this._baseDamage;
     }
-    return 0
+    return 0;
   }
 
   // Override destroy method to clean up health bar
@@ -156,49 +156,49 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     super.destroy();
   }
 
-  updatePosition(){
+  updatePosition() {
     const newPosition = this.snapToPosition();
-    if (this.isPositionValid(newPosition)){
-      this._mostRecentValidPosition.x = this.x
-      this._mostRecentValidPosition.y = this.y
-    }
-    else{
-      this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y)
+    if (this.isPositionValid(newPosition)) {
+      this._mostRecentValidPosition.x = this.x;
+      this._mostRecentValidPosition.y = this.y;
+    } else {
+      this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y);
     }
   }
 
-  isPositionValid(newPosition){
-    if (newPosition === this.bench && !this.isBenchFull()){
+  isPositionValid(newPosition) {
+    if (newPosition === this.bench && !this.isBenchFull()) {
       this.sendToBench();
       return true;
     }
-    if (this.slots.some(obj => obj === newPosition) && newPosition._isEmpty === true){
-      this.sendToField(newPosition)
+    if (this.slots.some((obj) => obj === newPosition) && newPosition._isEmpty === true) {
+      this.sendToField(newPosition);
       return true;
-    }
-    else{
+    } else {
       return false;
     }
   }
 
-  toggleActive(state){
+  toggleActive(state) {
     if (state === false) {
       this._isActive = false;
-      this.healthBar.destroy()
-      } 
-    else {
-      if(this._isActive === false){
+      this.healthBar.destroy();
+    } else {
+      if (this._isActive === false) {
         this.healthBar = new HealthBar(this.currentScene, this.x, this.y - 50, 40, 5);
         this.healthBar.setDepth(1); // Make sure health bar is above the unit
       }
       this._isActive = true;
-      }
+    }
   }
 
   snapToPosition() {
     // Return the closest object
-    if (this.x <= this.bench.width || this.x >= this.currentScene.cameras.main.width - this.bench.width) {
-      return this.bench
+    if (
+      this.x <= this.bench.width ||
+      this.x >= this.currentScene.cameras.main.width - this.bench.width
+    ) {
+      return this.bench;
     } else {
       let closestDistance = Infinity;
       let closestSlot = null;
@@ -211,7 +211,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
         }
       });
 
-      return closestSlot
+      return closestSlot;
     }
   }
 
@@ -219,7 +219,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     const dx = x2 - x1;
     const dy = y2 - y1;
     return Math.sqrt(dx * dx + dy * dy);
-    }
+  }
 
   loadBaseStats() {
     this._maxHealth = this._unitBaseStats.maxHealth;
@@ -227,7 +227,6 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._attackTime = this._unitBaseStats.attackTime;
     this._respawnTime = this._unitBaseStats.respawnTime;
     this._baseDamage = this._unitBaseStats.baseDamage;
-    this._value = this._unitBaseStats.maxHealth/20.0
+    this._value = this._unitBaseStats.maxHealth / 20.0;
   }
 }
-
