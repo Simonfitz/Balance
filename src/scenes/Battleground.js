@@ -34,7 +34,7 @@ export class Battleground extends Phaser.Scene {
     this.load.image('heroBench', 'assets/UI/bench.png');
     this.load.image('monsterBench', 'assets/UI/bench.png');
     this.load.image('bar', 'assets/UI/bar.png');
-    this.load.image('menu', 'assets/UI/test.png');
+    this.load.image('menu', 'assets/UI/menu.png');
 
     // Load particle textures
     this.load.image('flare', 'assets/misc/flare.png');
@@ -84,7 +84,7 @@ export class Battleground extends Phaser.Scene {
     // Create the rest of the game components
     this.initialisePlacementTiles(screenCenterX, screenCenterY);
     this.initialiseUnitButtons(screenCenterX, screenCenterY);
-    this.menuUpgrades = new MenuUpgrades(this, screenCenterX, screenCenterY, this.cameras.main.width*0.8, this.cameras.main.height*0.3, 'menu')
+    this.menuUpgrades = new MenuUpgrades(this, screenCenterX, screenCenterY+400, this.cameras.main.width*0.8, this.cameras.main.height*0.5, 'menu', 'addButton')
   }
 
   /**
