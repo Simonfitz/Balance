@@ -31,6 +31,8 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
     this.body.setCollideWorldBounds(false);
     this.body.setBounce(0);
     this.body.setImmovable(true);
+    this.body.setSize(16, 16); // Set explicit size for collision
+    this.body.setOffset(0, 0); // Center the collision box
 
     // Set up collision
     scene.physics.add.overlap(this, target, this.onHit, null, this);
@@ -55,6 +57,9 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
 
     // Set depth to appear above units
     this.setDepth(10);
+
+    // Debug visualization (uncomment to see collision boxes)
+    // this.body.debugBodyColor = 0xff0000;
   }
 
   onHit(projectile, target) {
