@@ -3,7 +3,7 @@ import UpgradeButton from '../gameObjects/buttonUpgrade.js';
 export default class MenuUpgrades extends Phaser.GameObjects.Container {
   constructor(scene, menuCentreX, menuCentreY, menuWidth, menuHeight, menuTexture, buttonTexture) {
     super(scene, menuCentreX, menuCentreY);
-
+    this.currentScene = scene;
     this._opened = false;
 
     // Scale the container
@@ -19,11 +19,13 @@ export default class MenuUpgrades extends Phaser.GameObjects.Container {
     this.menuBackground.on('pointerup', () => {
       if(this._opened){
         this._opened = false;
-        this.setPosition(menuCentreX, menuCentreY)
+        //this.setPosition(menuCentreX, menuCentreY)
+        this.moveWindow(menuCentreX, menuCentreY);
       }
       else{
         this._opened = true;
-        this.setPosition(menuCentreX, menuCentreY-this.menuBackground.height/4);
+        //this.setPosition(menuCentreX, menuCentreY-this.menuBackground.height/4);
+        this.moveWindow(menuCentreX, menuCentreY-this.menuBackground.height/4);
       }
       });
 
@@ -53,5 +55,15 @@ export default class MenuUpgrades extends Phaser.GameObjects.Container {
 
     // Add to scene
     scene.add.existing(this);
+  }
+
+  moveWindow(x, y, duration=1000){
+    this.currentScene.tweens.add({
+      targets: this,         // what to move
+      x: x,                    // destination x
+      y: y,                    // destination y
+      duration: duration,            // time in milliseconds (1000ms = 1 second)
+      ease: 'Linear'             // easing function (you can use others too)
+    });
   }
 }
