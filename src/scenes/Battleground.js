@@ -163,6 +163,9 @@ export class Battleground extends Phaser.Scene {
    * @param {Hero} hero - The hero being moved
    */
   updateHeroBenchPosition(oldIndex, newIndex, hero) {
+    console.log(`[Hero] Updating bench position for ${hero._unitName}`);
+    console.log(`[Hero] Old index: ${oldIndex}`);
+    console.log(`[Hero] New index: ${newIndex}`);
     if (oldIndex >= 0) this.heroBenchPositions[oldIndex] = null;
     if (newIndex >= 0) this.heroBenchPositions[newIndex] = hero;
   }
@@ -383,10 +386,21 @@ export class Battleground extends Phaser.Scene {
    * Initialises a hero unit at the specified position
    */
   initHero(x, y, heroName) {
+    // Check if there's space on the bench
+    if (this.heroBenchCurrentSize >= this.heroBenchMaxSize) {
+      console.warn('Hero bench is full');
+      return null;
+    }
+
     const hero = new Hero(this, x, y, heroName, 0, heroName);
     this.heroArray.push(hero);
-    // Add to game state as bench unit initially
+
+    // Initialize on bench
+    this.heroBenchCurrentSize++;
+
+    // Add to game state as bench unit
     this.gameState.addUnit(hero, 'bench');
+
     return hero;
   }
 
@@ -394,10 +408,21 @@ export class Battleground extends Phaser.Scene {
    * Initialises a monster unit at the specified position
    */
   initMonster(x, y, monsterName) {
+    // Check if there's space on the bench
+    if (this.monsterBenchCurrentSize >= this.monsterBenchMaxSize) {
+      console.warn('Monster bench is full');
+      return null;
+    }
+
     const monster = new Monster(this, x, y, monsterName, 0, monsterName);
     this.monsterArray.push(monster);
-    // Add to game state as bench unit initially
+
+    // Initialize on bench
+    this.monsterBenchCurrentSize++;
+
+    // Add to game state as bench unit
     this.gameState.addUnit(monster, 'bench');
+
     return monster;
   }
 
