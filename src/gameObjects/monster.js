@@ -102,7 +102,8 @@ export default class Monster extends Unit {
     const benchHeight = this.bench.height;
     const benchTop = this.bench.y - benchHeight / 2;
     const benchFillRatio = this._benchPositionIndex / this.currentScene.monsterBenchMaxSize;
-    return benchTop + benchFillRatio * benchHeight;
+    const verticalOffset = 40; // Add 20 pixels to shift units down
+    return benchTop + benchFillRatio * benchHeight + verticalOffset;
   }
 
   /**

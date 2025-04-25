@@ -102,7 +102,8 @@ export default class Hero extends Unit {
     const benchHeight = this.bench.height;
     const benchTop = this.bench.y - benchHeight / 2;
     const benchFillRatio = this._benchPositionIndex / this.currentScene.heroBenchMaxSize;
-    return benchTop + benchFillRatio * benchHeight;
+    const verticalOffset = 40; // Add 20 pixels to shift units down
+    return benchTop + benchFillRatio * benchHeight + verticalOffset;
   }
 
   /**
