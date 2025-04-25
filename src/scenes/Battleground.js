@@ -100,10 +100,6 @@ export class Battleground extends Phaser.Scene {
    * Initialises the currency system
    */
   initialiseCurrencySystem(screenCenterX, screenCenterY) {
-    this.bankBlue = 0;
-    this.bankRed = 0;
-    this.bankCap = 200;
-
     this.currencyRed = 0;
     this.currencyBlue = 0;
 
@@ -289,6 +285,7 @@ export class Battleground extends Phaser.Scene {
    */
   update(time, delta) {
     this.updateUnits(time, delta);
+    this.currencyBank.updateBankTint();
     this.combatManager.handleCombat();
     this.updateUI();
   }
