@@ -163,9 +163,6 @@ export class Battleground extends Phaser.Scene {
    * @param {Hero} hero - The hero being moved
    */
   updateHeroBenchPosition(oldIndex, newIndex, hero) {
-    console.log(`[Hero] Updating bench position for ${hero._unitName}`);
-    console.log(`[Hero] Old index: ${oldIndex}`);
-    console.log(`[Hero] New index: ${newIndex}`);
     if (oldIndex >= 0) this.heroBenchPositions[oldIndex] = null;
     if (newIndex >= 0) this.heroBenchPositions[newIndex] = hero;
   }
@@ -388,7 +385,7 @@ export class Battleground extends Phaser.Scene {
   initHero(x, y, heroName) {
     // Check if there's space on the bench
     if (this.heroBenchCurrentSize >= this.heroBenchMaxSize) {
-      console.warn('Hero bench is full');
+      console.error('Hero bench is full');
       return null;
     }
 
@@ -410,7 +407,7 @@ export class Battleground extends Phaser.Scene {
   initMonster(x, y, monsterName) {
     // Check if there's space on the bench
     if (this.monsterBenchCurrentSize >= this.monsterBenchMaxSize) {
-      console.warn('Monster bench is full');
+      console.error('Monster bench is full');
       return null;
     }
 
