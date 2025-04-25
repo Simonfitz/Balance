@@ -220,109 +220,169 @@ export class GameState {
 
   _updatePosition(unit) {
     const side = unit instanceof Hero ? 'heroes' : 'monsters';
-    const position = this._calculatePosition(unit);
+    const newPosition = this._calculatePosition(unit);
+    const oldPosition = this.positions[side].get(unit);
 
-    if (!position) {
+    if (!newPosition) {
       console.log(
         `[GameState] No position found for unit ${unit._unitName} at (${unit.x}, ${unit.y})`
       );
       return;
     }
 
-    this.positions[side].set(unit, position);
+    // Only update if position actually changed
+    if (oldPosition && oldPosition.row === newPosition.row && oldPosition.col === newPosition.col) {
+      return;
+    }
+
+    this.positions[side].set(unit, newPosition);
     console.log(`[GameState] Updated position for ${unit._unitName}:`, {
-      position,
+      position: newPosition,
       unitPosition: { x: unit.x, y: unit.y },
       side,
     });
+
+    // Update adjacency for affected units
+    this._updateAdjacency(unit);
   }
 
   /**
-   * Updates the adjacency relationships for a unit based on the V-pattern layout:
-   *
-   * Front Column (col 0)    Back Column (col 1)
-   *
-   *             [1]
-   *            /
-   *           /
-   *        [0]
-   *           \
-   *            \
-   *             [3]
-   *            /
-   *           /
-   *        [2]
-   *           \
-   *            \
-   *             [4]
-   *
-   * Adjacency Rules:
-   * - Column adjacency: Units in the same column (vertical)
-   * - Row adjacency (front/back relationships):
-   *   * Position 0 (front) is in front of positions 1 and 3 (back)
-   *   * Position 2 (front) is in front of positions 3 and 4 (back)
-   *   * Position 1 (back) is behind position 0 (front)
-   *   * Position 3 (back) is behind both positions 0 and 2 (front)
-   *   * Position 4 (back) is behind position 2 (front)
-   *
-   * @param {Unit} unit - The unit to update adjacency for
+   * Updates the adjacency relationships for a unit and affected units
    */
   _updateAdjacency(unit) {
+    const side = unit instanceof Hero ? 'heroes' : 'monsters';
+    const position = this.getUnitPosition(unit);
+
+    if (!position) {
+      console.log(`[GameState] No position found for unit ${unit._unitName}`);
+      return;
+    }
+
+    // Get all units affected by this position change
+    const affectedUnits = this._getAffectedUnits(side, position);
+    affectedUnits.add(unit); // Include the unit itself
+
+    // Update adjacency for all affected units
+    for (const affectedUnit of affectedUnits) {
+      const { columnAdjacent, rowAdjacent } = this._calculateAdjacency(affectedUnit);
+
+      // Update the adjacency maps
+      this.adjacency[side].column.set(affectedUnit, columnAdjacent);
+      this.adjacency[side].row.set(affectedUnit, rowAdjacent);
+
+      console.log(`[GameState] Updated adjacency for ${affectedUnit._unitName}:`, {
+        position: this.getUnitPosition(affectedUnit),
+        columnAdjacent: Array.from(columnAdjacent).map((u) => u._unitName),
+        rowAdjacent: Array.from(rowAdjacent).map((u) => u._unitName),
+      });
+    }
+  }
+
+  /**
+   * Gets all units affected by a position change
+   */
+  _getAffectedUnits(side, position) {
+    const affectedUnits = new Set();
+    const affectedRows = new Set();
+
+    // Get all units in positions that would be affected by a change at this position
+    for (const [unit, pos] of this.positions[side].entries()) {
+      // Check column adjacency
+      if (pos.col === position.col && Math.abs(pos.row - position.row) <= 1) {
+        affectedUnits.add(unit);
+      }
+
+      // Check row adjacency based on V-pattern
+      if (pos.col !== position.col) {
+        // Front column affects back column
+        if (position.col === 1) {
+          if (position.row === 0) {
+            affectedRows.add(0);
+            affectedRows.add(1);
+          } else if (position.row === 1) {
+            affectedRows.add(1);
+            affectedRows.add(2);
+          }
+        }
+        // Back column affected by front column
+        else {
+          if (pos.row === 0 && position.row === 0) {
+            affectedUnits.add(unit);
+          } else if (pos.row === 1 && (position.row === 0 || position.row === 1)) {
+            affectedUnits.add(unit);
+          } else if (pos.row === 2 && position.row === 1) {
+            affectedUnits.add(unit);
+          }
+        }
+      }
+    }
+
+    return affectedUnits;
+  }
+
+  /**
+   * Calculates adjacency relationships for a unit with optimized checks
+   */
+  _calculateAdjacency(unit) {
     const side = unit instanceof Hero ? 'heroes' : 'monsters';
     const position = this.getUnitPosition(unit);
     const columnAdjacent = new Set();
     const rowAdjacent = new Set();
 
     if (!position) {
-      console.log(`[GameState] No position found for unit ${unit._unitName}`);
+      console.warn(`[GameState] No position found for unit ${unit._unitName}`);
       return { columnAdjacent, rowAdjacent };
     }
 
-    // Check all other units for adjacency
-    for (const [otherUnit, otherPos] of this.positions[side].entries()) {
-      if (unit === otherUnit) continue;
+    if (!this.positions[side]) {
+      console.warn(`[GameState] Invalid side: ${side}`);
+      return { columnAdjacent, rowAdjacent };
+    }
 
-      // Check column adjacency (same column, different row)
-      if (position.col === otherPos.col) {
-        columnAdjacent.add(otherUnit);
+    // Pre-calculate position ranges for quick checks
+    const rowRange = [Math.max(0, position.row - 1), Math.min(2, position.row + 1)];
+    const affectedRows = new Set();
+
+    // Determine affected rows based on V-pattern
+    if (position.col === 1) {
+      // Front column
+      if (position.row === 0) {
+        affectedRows.add(0);
+        affectedRows.add(1);
+      } else if (position.row === 1) {
+        affectedRows.add(1);
+        affectedRows.add(2);
       }
-
-      // Check row adjacency based on overlapping V pattern
-      if (position.col !== otherPos.col) {
-        // If in front column (col 1)
-        if (position.col === 1) {
-          // Position 0 covers positions 1 and 3
-          if (position.row === 0 && (otherPos.row === 0 || otherPos.row === 1)) {
-            rowAdjacent.add(otherUnit);
-          }
-          // Position 2 covers positions 3 and 4
-          else if (position.row === 1 && (otherPos.row === 1 || otherPos.row === 2)) {
-            rowAdjacent.add(otherUnit);
-          }
-        }
-        // If in back column (col 0)
-        else {
-          // Position 1 is covered by position 0
-          if (position.row === 0 && otherPos.row === 0) {
-            rowAdjacent.add(otherUnit);
-          }
-          // Position 3 is covered by both positions 0 and 2
-          else if (position.row === 1 && (otherPos.row === 0 || otherPos.row === 1)) {
-            rowAdjacent.add(otherUnit);
-          }
-          // Position 4 is covered by position 2
-          else if (position.row === 2 && otherPos.row === 1) {
-            rowAdjacent.add(otherUnit);
-          }
-        }
+    } else {
+      // Back column
+      if (position.row === 0) {
+        affectedRows.add(0);
+      } else if (position.row === 1) {
+        affectedRows.add(0);
+        affectedRows.add(1);
+      } else if (position.row === 2) {
+        affectedRows.add(1);
       }
     }
 
-    console.log(`[GameState] Updated adjacency for ${unit._unitName}:`, {
-      position,
-      columnAdjacent: Array.from(columnAdjacent).map((u) => u._unitName),
-      rowAdjacent: Array.from(rowAdjacent).map((u) => u._unitName),
-    });
+    // Single pass through units with optimized checks
+    for (const [otherUnit, otherPos] of this.positions[side].entries()) {
+      if (unit === otherUnit) continue;
+
+      // Quick column check
+      if (
+        position.col === otherPos.col &&
+        otherPos.row >= rowRange[0] &&
+        otherPos.row <= rowRange[1]
+      ) {
+        columnAdjacent.add(otherUnit);
+      }
+
+      // Quick row check
+      if (position.col !== otherPos.col && affectedRows.has(otherPos.row)) {
+        rowAdjacent.add(otherUnit);
+      }
+    }
 
     return { columnAdjacent, rowAdjacent };
   }
