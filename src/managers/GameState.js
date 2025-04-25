@@ -42,8 +42,6 @@ export class GameState {
 
     // Track deaths this turn
     this.deathsThisTurn = new Set();
-
-    console.log('[GameState] Initialized');
   }
 
   /**
@@ -57,19 +55,12 @@ export class GameState {
 
     // Update counts
     this._updateUnitCount(unitType, side, location, 1);
-    // this._updateUnitCount(unitType, side, 'total', 1);
 
     // If on field, track position
     if (location === 'field') {
       this._updatePosition(unit);
       this._updateAdjacency(unit);
     }
-
-    console.log(`[GameState] Added ${unitType} to ${location}. Current counts:`, {
-      field: this.unitCounts[side].field.get(unitType) || 0,
-      bench: this.unitCounts[side].bench.get(unitType) || 0,
-      total: this.unitCounts[side].total.get(unitType) || 0,
-    });
   }
 
   /**
@@ -83,7 +74,6 @@ export class GameState {
 
     // Update counts
     this._updateUnitCount(unitType, side, location, -1);
-    // this._updateUnitCount(unitType, side, 'total', -1);
 
     // If on field, remove position tracking
     if (location === 'field') {
@@ -91,12 +81,6 @@ export class GameState {
       this.adjacency[side].column.delete(unit);
       this.adjacency[side].row.delete(unit);
     }
-
-    console.log(`[GameState] Removed ${unitType} from ${location}. Current counts:`, {
-      field: this.unitCounts[side].field.get(unitType) || 0,
-      bench: this.unitCounts[side].bench.get(unitType) || 0,
-      total: this.unitCounts[side].total.get(unitType) || 0,
-    });
   }
 
   /**
@@ -108,8 +92,6 @@ export class GameState {
   moveUnit(unit, fromLocation, toLocation) {
     const unitType = unit.constructor.name.toLowerCase();
     const side = unit instanceof Hero ? 'heroes' : 'monsters';
-
-    console.log(`[GameState] Moving ${unitType} from ${fromLocation} to ${toLocation}`);
 
     // Update counts directly instead of using remove/add
     this._updateUnitCount(unitType, side, fromLocation, -1);
@@ -126,12 +108,6 @@ export class GameState {
       this._updatePosition(unit);
       this._updateAdjacency(unit);
     }
-
-    console.log(`[GameState] Moved ${unitType}. Current counts:`, {
-      field: this.unitCounts[side].field.get(unitType) || 0,
-      bench: this.unitCounts[side].bench.get(unitType) || 0,
-      total: this.unitCounts[side].total.get(unitType) || 0,
-    });
   }
 
   /**
@@ -209,13 +185,6 @@ export class GameState {
     const currentTotal = this.unitCounts[side].total.get(unitType) || 0;
     const newTotal = Math.max(0, currentTotal + change);
     this.unitCounts[side].total.set(unitType, newTotal);
-
-    console.log(`[GameState] Updated ${unitType} count for ${location}:`, {
-      previous: current,
-      change,
-      new: newCount,
-      total: newTotal,
-    });
   }
 
   _updatePosition(unit) {
@@ -224,7 +193,7 @@ export class GameState {
     const oldPosition = this.positions[side].get(unit);
 
     if (!newPosition) {
-      console.log(
+      console.error(
         `[GameState] No position found for unit ${unit._unitName} at (${unit.x}, ${unit.y})`
       );
       return;
@@ -236,25 +205,17 @@ export class GameState {
     }
 
     this.positions[side].set(unit, newPosition);
-    console.log(`[GameState] Updated position for ${unit._unitName}:`, {
-      position: newPosition,
-      unitPosition: { x: unit.x, y: unit.y },
-      side,
-    });
 
     // Update adjacency for affected units
     this._updateAdjacency(unit);
   }
 
-  /**
-   * Updates the adjacency relationships for a unit and affected units
-   */
   _updateAdjacency(unit) {
     const side = unit instanceof Hero ? 'heroes' : 'monsters';
     const position = this.getUnitPosition(unit);
 
     if (!position) {
-      console.log(`[GameState] No position found for unit ${unit._unitName}`);
+      console.error(`[GameState] No position found for unit ${unit._unitName}`);
       return;
     }
 
@@ -269,12 +230,6 @@ export class GameState {
       // Update the adjacency maps
       this.adjacency[side].column.set(affectedUnit, columnAdjacent);
       this.adjacency[side].row.set(affectedUnit, rowAdjacent);
-
-      console.log(`[GameState] Updated adjacency for ${affectedUnit._unitName}:`, {
-        position: this.getUnitPosition(affectedUnit),
-        columnAdjacent: Array.from(columnAdjacent).map((u) => u._unitName),
-        rowAdjacent: Array.from(rowAdjacent).map((u) => u._unitName),
-      });
     }
   }
 
@@ -330,12 +285,12 @@ export class GameState {
     const rowAdjacent = new Set();
 
     if (!position) {
-      console.warn(`[GameState] No position found for unit ${unit._unitName}`);
+      console.error(`[GameState] No position found for unit ${unit._unitName}`);
       return { columnAdjacent, rowAdjacent };
     }
 
     if (!this.positions[side]) {
-      console.warn(`[GameState] Invalid side: ${side}`);
+      console.error(`[GameState] Invalid side: ${side}`);
       return { columnAdjacent, rowAdjacent };
     }
 
@@ -394,14 +349,9 @@ export class GameState {
     const slots = side === 'heroes' ? this.scene.heroSlots : this.scene.monsterSlots;
 
     if (!slots || !Array.isArray(slots)) {
-      console.log(`[GameState] No valid slots array found for ${side}`);
+      console.error(`[GameState] No valid slots array found for ${side}`);
       return null;
     }
-
-    console.log(`[GameState] Calculating position for ${unit._unitName}:`, {
-      unitPosition: { x: unit.x, y: unit.y },
-      slots: slots.map((s) => ({ x: s.x, y: s.y, isEmpty: s._isEmpty })),
-    });
 
     // Find the slot that matches the unit's position
     const slotIndex = slots.findIndex((slot) => {
@@ -412,7 +362,7 @@ export class GameState {
     });
 
     if (slotIndex === -1) {
-      console.log(`[GameState] No slot found for unit at position (${unit.x}, ${unit.y})`);
+      console.error(`[GameState] No slot found for unit at position (${unit.x}, ${unit.y})`);
       return null;
     }
 
@@ -423,14 +373,6 @@ export class GameState {
     //    [4]
     const row = Math.floor(slotIndex / 2);
     const col = slotIndex % 2;
-
-    console.log(`[GameState] Calculated position for ${unit._unitName}:`, {
-      slotIndex,
-      row,
-      col,
-      unitPosition: { x: unit.x, y: unit.y },
-      slotPosition: slots[slotIndex] ? { x: slots[slotIndex].x, y: slots[slotIndex].y } : null,
-    });
 
     return { row, col };
   }
