@@ -42,10 +42,9 @@ export default class Monster extends Unit {
 
     // If already on the field, mark the current slot as empty
     if (this._isActive) {
-      const currentSlotIndex = this.slots.findIndex((s) => s._isEmpty === false && s !== slot);
-      if (currentSlotIndex !== -1) {
-        this.slots[currentSlotIndex]._isEmpty = true;
-        this.currentScene.updateMonsterFieldState(currentSlotIndex, null);
+      if (this._currentSlotIndex !== -1) {
+        this.slots[this._currentSlotIndex]._isEmpty = true;
+        this.currentScene.updateMonsterFieldState(this._currentSlotIndex, null);
       }
       fromLocation = 'field';
     } else {
@@ -58,6 +57,7 @@ export default class Monster extends Unit {
 
     this.setPosition(slot.x, slot.y);
     this._mostRecentValidPosition = { x: slot.x, y: slot.y };
+    this._currentSlotIndex = slotIndex; // Update the current slot index
     slot._isEmpty = false;
     this.currentScene.updateMonsterFieldState(slotIndex, this);
     this.toggleActive(true);
