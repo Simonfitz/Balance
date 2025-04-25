@@ -84,7 +84,7 @@ export class Battleground extends Phaser.Scene {
     // Create the rest of the game components
     this.initialisePlacementTiles(screenCenterX, screenCenterY);
     this.initialiseUnitButtons(screenCenterX, screenCenterY);
-    this.menuUpgrades = new MenuUpgrades(this, screenCenterX, screenCenterY+400, this.cameras.main.width*0.8, this.cameras.main.height*0.5, 'menu', 'addButton')
+    this.menuUpgrades = new MenuUpgrades(this, screenCenterX, screenCenterY*2.3, this.cameras.main.width*0.8, this.cameras.main.height*0.5, 'menu', 'addButton')
   }
 
   /**
