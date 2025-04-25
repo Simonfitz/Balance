@@ -6,24 +6,18 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture, frame, unitName) {
     super(scene, x, y, texture, frame);
 
-    // Add to scene and set initial position
+    // Add to scene and enable physics
     scene.add.existing(this);
+    scene.physics.add.existing(this);
+    this.body.enable = true;
+    this.body.setCircle(16); // Set collision circle to match unit size
+
     this.setPosition(x, y);
     this.currentScene = scene;
 
     // Store unit type and behavior
     this._unitName = unitName;
     this._behavior = new UnitBehavior(); // Initialize with default behavior
-
-    // Initialise particle emitter for attack effects
-    this.emitter = this.scene.add.particles(0, 0, 'flare', {
-      lifespan: 200,
-      gravity: 500,
-      blendMode: 'ADD',
-      moveToX: 50,
-      moveToY: 50,
-    });
-    this.emitter.stop();
 
     // Initialise unit stats
     this._unitBaseStats = {};
@@ -258,10 +252,6 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   destroy() {
     if (this.healthBar) {
       this.healthBar.destroy();
-    }
-    if (this.emitter) {
-      this.emitter.stop();
-      this.emitter.destroy();
     }
     super.destroy();
   }
