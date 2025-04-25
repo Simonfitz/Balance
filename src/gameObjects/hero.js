@@ -37,18 +37,13 @@ export default class Hero extends Unit {
   moveToField(slot) {
     const slotIndex = this.slots.indexOf(slot);
     if (slotIndex === -1) return;
+
     let fromLocation = '';
     // If already on the field, mark the current slot as empty
     if (this._isActive) {
-      const currentSlotIndex = this.slots.findIndex((s) => {
-        // Use a small threshold for floating point comparison
-        const xMatch = Math.abs(s.x - this.x) < 1;
-        const yMatch = Math.abs(s.y - this.y) < 1;
-        return xMatch && yMatch && s !== slot;
-      });
-      if (currentSlotIndex !== -1) {
-        this.slots[currentSlotIndex]._isEmpty = true;
-        this.currentScene.updateHeroFieldState(currentSlotIndex, null);
+      if (this._currentSlotIndex !== -1) {
+        this.slots[this._currentSlotIndex]._isEmpty = true;
+        this.currentScene.updateHeroFieldState(this._currentSlotIndex, null);
       }
       fromLocation = 'field';
     } else {
@@ -59,9 +54,10 @@ export default class Hero extends Unit {
       fromLocation = 'bench';
     }
 
-    // First update the position and slot state
+    // Update the new position and slot state
     this.setPosition(slot.x, slot.y);
     this._mostRecentValidPosition = { x: slot.x, y: slot.y };
+    this._currentSlotIndex = slotIndex; // Update the current slot index
     slot._isEmpty = false;
     this.currentScene.updateHeroFieldState(slotIndex, this);
     this.toggleActive(true);
@@ -75,11 +71,10 @@ export default class Hero extends Unit {
   moveToBench() {
     if (this._isActive) {
       console.log('Moving hero to bench');
-      const slotIndex = this.slots.findIndex((slot) => slot.x === this.x && slot.y === this.y);
-      if (slotIndex !== -1) {
+      if (this._currentSlotIndex !== -1) {
         // Mark the slot as empty and update field state
-        this.slots[slotIndex]._isEmpty = true;
-        this.currentScene.updateHeroFieldState(slotIndex, null);
+        this.slots[this._currentSlotIndex]._isEmpty = true;
+        this.currentScene.updateHeroFieldState(this._currentSlotIndex, null);
       }
       this.currentScene.heroBenchCurrentSize++;
       this.toggleActive(false);

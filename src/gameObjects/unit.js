@@ -41,6 +41,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._spawnX = x;
     this._spawnY = y;
     this._mostRecentValidPosition = { x, y };
+    this._currentSlotIndex = -1; // Track which slot the unit is in
 
     // Set UI references
     this.bench = scene.heroBench;

@@ -289,8 +289,8 @@ export class GameState {
 
       // Check row adjacency based on overlapping V pattern
       if (position.col !== otherPos.col) {
-        // If in front column (col 0)
-        if (position.col === 0) {
+        // If in front column (col 1)
+        if (position.col === 1) {
           // Position 0 covers positions 1 and 3
           if (position.row === 0 && (otherPos.row === 0 || otherPos.row === 1)) {
             rowAdjacent.add(otherUnit);
@@ -300,7 +300,7 @@ export class GameState {
             rowAdjacent.add(otherUnit);
           }
         }
-        // If in back column (col 1)
+        // If in back column (col 0)
         else {
           // Position 1 is covered by position 0
           if (position.row === 0 && otherPos.row === 0) {
