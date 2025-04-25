@@ -38,6 +38,7 @@ export default class Monster extends Unit {
   moveToField(slot) {
     const slotIndex = this.slots.indexOf(slot);
     if (slotIndex === -1) return;
+    let fromLocation = '';
 
     // If already on the field, mark the current slot as empty
     if (this._isActive) {
@@ -46,13 +47,13 @@ export default class Monster extends Unit {
         this.slots[currentSlotIndex]._isEmpty = true;
         this.currentScene.updateMonsterFieldState(currentSlotIndex, null);
       }
+      fromLocation = 'field';
     } else {
       // Coming from bench
       this.currentScene.monsterBenchCurrentSize--;
       this.currentScene.updateMonsterBenchPosition(this._benchPositionIndex, -1, this);
       this._benchPositionIndex = -1;
-      // Update GameState - moving from bench to field
-      this.currentScene.gameState.moveUnit(this, 'bench', 'field');
+      fromLocation = 'bench';
     }
 
     this.setPosition(slot.x, slot.y);
@@ -60,6 +61,7 @@ export default class Monster extends Unit {
     slot._isEmpty = false;
     this.currentScene.updateMonsterFieldState(slotIndex, this);
     this.toggleActive(true);
+    this.currentScene.gameState.moveUnit(this, fromLocation, 'field');
   }
 
   /**

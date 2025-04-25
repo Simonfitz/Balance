@@ -173,6 +173,7 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
       }
       this._mostRecentValidPosition.x = this.x;
       this._mostRecentValidPosition.y = this.y;
+      console.log(`[Unit] Updated position to ${this.x}, ${this.y}`);
     } else {
       this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y);
     }

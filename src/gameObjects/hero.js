@@ -37,7 +37,7 @@ export default class Hero extends Unit {
   moveToField(slot) {
     const slotIndex = this.slots.indexOf(slot);
     if (slotIndex === -1) return;
-
+    let fromLocation = '';
     // If already on the field, mark the current slot as empty
     if (this._isActive) {
       const currentSlotIndex = this.slots.findIndex((s) => {
@@ -50,20 +50,22 @@ export default class Hero extends Unit {
         this.slots[currentSlotIndex]._isEmpty = true;
         this.currentScene.updateHeroFieldState(currentSlotIndex, null);
       }
+      fromLocation = 'field';
     } else {
       // Coming from bench
       this.currentScene.heroBenchCurrentSize--;
       this.currentScene.updateHeroBenchPosition(this._benchPositionIndex, -1, this);
       this._benchPositionIndex = -1;
-      // Update GameState - moving from bench to field
-      this.currentScene.gameState.moveUnit(this, 'bench', 'field');
+      fromLocation = 'bench';
     }
 
+    // First update the position and slot state
     this.setPosition(slot.x, slot.y);
     this._mostRecentValidPosition = { x: slot.x, y: slot.y };
     slot._isEmpty = false;
     this.currentScene.updateHeroFieldState(slotIndex, this);
     this.toggleActive(true);
+    this.currentScene.gameState.moveUnit(this, fromLocation, 'field');
   }
 
   /**
