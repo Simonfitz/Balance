@@ -5,8 +5,7 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
       texture: 'flare',
       speed: 300,
       scale: 0.3,
-      trailColor: 0x00aaff,
-      impactColor: 0x00ffff,
+      tint: 0x00aaff,
       lifespan: 2000, // Max time before auto-destroy
       isChain: false,
       onHit: null, // Callback function for when projectile hits
@@ -44,9 +43,12 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
       alpha: { start: 1, end: 0 },
       lifespan: 200,
       quantity: 2,
-      color: finalConfig.trailColor,
+      tint: finalConfig.tint,
       blendMode: 'ADD',
     });
+
+    // Apply tint to the projectile sprite
+    this.setTint(finalConfig.tint);
 
     // Launch projectile at target
     const angle = Phaser.Math.Angle.Between(source.x, source.y, target.x, target.y);
@@ -72,7 +74,7 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
       alpha: { start: 1, end: 0 },
       lifespan: 200,
       quantity: 10,
-      color: this.config.impactColor,
+      tint: this.config.tint,
       blendMode: 'ADD',
     });
 

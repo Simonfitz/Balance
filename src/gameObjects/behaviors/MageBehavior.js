@@ -24,8 +24,7 @@ export class MageBehavior extends UnitBehavior {
       texture: 'flare',
       speed: 500,
       scale: 0.4,
-      trailColor: isHero ? 0x00aaff : 0xff0000,
-      impactColor: isHero ? 0x00ffff : 0xff5555,
+      tint: isHero ? 0x00aaff : 0xff0000,
       lifespan: 3000,
       onHit: () => this.triggerChainAttack(unit, target, isHero), // Add callback for chain attack
     });
@@ -62,8 +61,7 @@ export class MageBehavior extends UnitBehavior {
             texture: 'flare',
             speed: 400,
             scale: 0.3,
-            trailColor: isHero ? 0x00ffff : 0xff5555,
-            impactColor: isHero ? 0x00aaff : 0xff0000,
+            tint: isHero ? 0x00ffff : 0xff5555,
             lifespan: 2000,
             isChain: true,
           });
