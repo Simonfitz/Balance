@@ -62,6 +62,9 @@ export class CombatManager {
       // Call behavior's onAttack if it exists - this will handle projectile creation
       if (source._behavior && source._behavior.onAttack) {
         source._behavior.onAttack(source, target);
+      } else {
+        // If no projectile attack, apply damage directly
+        target.takeDamage(damage);
       }
     }
   }
