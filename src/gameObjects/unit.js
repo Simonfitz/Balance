@@ -1,28 +1,26 @@
 import ASSETS from '../assets.js';
 import HealthBar from './healthBar.js';
+import { UnitBehavior } from './behaviors/UnitBehavior.js';
 
 export default class Unit extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture, frame, unitName) {
     super(scene, x, y, texture, frame);
 
-    // Add to scene and set initial position
+    // Add to scene and enable physics
     scene.add.existing(this);
+    scene.physics.add.existing(this);
+    this.body.enable = true;
+    this.body.setCircle(16); // Set collision circle to match unit size
+
     this.setPosition(x, y);
     this.currentScene = scene;
 
-    // Initialise particle emitter for attack effects
-    this.emitter = this.scene.add.particles(0, 0, 'flare', {
-      lifespan: 200,
-      gravity: 500,
-      blendMode: 'ADD',
-      moveToX: 50,
-      moveToY: 50,
-    });
-    this.emitter.stop();
+    // Store unit type and behavior
+    this._unitName = unitName;
+    this._behavior = new UnitBehavior(); // Initialize with default behavior
 
     // Initialise unit stats
     this._unitBaseStats = {};
-    this._unitName = unitName;
     this._health = 100;
     this._maxHealth = 100;
     this._baseDamage = 1;
@@ -31,20 +29,17 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
     this._attackCharge = 0.0;
     this._attackSpeed = 1.0;
     this._isDead = false;
-    this._isActive = true;
+    this._isActive = false;
 
     // Store position data
     this._spawnX = x;
     this._spawnY = y;
     this._mostRecentValidPosition = { x, y };
+    this._currentSlotIndex = -1; // Track which slot the unit is in
 
     // Set UI references
     this.bench = scene.heroBench;
     this.slots = scene.heroSlots;
-
-    // Initialise health bar
-    this.healthBar = new HealthBar(scene, x, y - 50, 40, 5);
-    this.healthBar.setDepth(1);
 
     // Setup drag and drop functionality
     this.setInteractive({ useHandCursor: true, draggable: true });
@@ -152,6 +147,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   canAttack() {
     if (this._attackCharge >= this._attackTime) {
       this._attackCharge = 0;
+      if (this._behavior) {
+        return this._behavior.calculateDamage(this);
+      }
       return this._baseDamage;
     }
     return 0;
@@ -163,8 +161,14 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
   updatePosition() {
     const newPosition = this.snapToPosition();
     if (this.isPositionValid(newPosition)) {
+      if (newPosition === this.bench) {
+        this.moveToBench();
+      } else {
+        this.moveToField(newPosition);
+      }
       this._mostRecentValidPosition.x = this.x;
       this._mostRecentValidPosition.y = this.y;
+      console.log(`[Unit] Updated position to ${this.x}, ${this.y}`);
     } else {
       this.setPosition(this._mostRecentValidPosition.x, this._mostRecentValidPosition.y);
     }
@@ -174,15 +178,10 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
    * Validates if a position is a valid placement for the unit
    */
   isPositionValid(newPosition) {
-    if (newPosition === this.bench && !this.isBenchFull()) {
-      this.moveToBench();
-      return true;
+    if (newPosition === this.bench) {
+      return !this.isBenchFull();
     }
-    if (this.slots.some((obj) => obj === newPosition) && newPosition._isEmpty === true) {
-      this.moveToField(newPosition);
-      return true;
-    }
-    return false;
+    return this.slots.some((obj) => obj === newPosition) && newPosition._isEmpty === true;
   }
 
   /**
@@ -255,5 +254,9 @@ export default class Unit extends Phaser.Physics.Arcade.Sprite {
       this.healthBar.destroy();
     }
     super.destroy();
+  }
+
+  setBehavior(behavior) {
+    this._behavior = behavior;
   }
 }

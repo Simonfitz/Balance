@@ -1,5 +1,6 @@
 import Unit from './unit.js';
 import jsonData from '../../assets/resources/unit_specs/monster.json' with { type: 'json' };
+import { ImpBehavior } from './behaviors/ImpBehavior.js';
 
 export default class Monster extends Unit {
   constructor(scene, x, y, texture, frame, unitName) {
@@ -9,6 +10,17 @@ export default class Monster extends Unit {
     this.bench = scene.monsterBench;
     this.slots = scene.monsterSlots;
     this.currentScene = scene;
+
+    // Set unit-specific behavior
+    switch (unitName) {
+      case 'imp':
+        this.setBehavior(new ImpBehavior());
+        break;
+      // Add other monster behaviors here
+      default:
+        // Keep default behavior
+        break;
+    }
 
     // Then load stats
     this._unitBaseStats = jsonData[unitName];
@@ -26,18 +38,30 @@ export default class Monster extends Unit {
   moveToField(slot) {
     const slotIndex = this.slots.indexOf(slot);
     if (slotIndex === -1) return;
+    let fromLocation = '';
 
-    if (!this._isActive) {
+    // If already on the field, mark the current slot as empty
+    if (this._isActive) {
+      if (this._currentSlotIndex !== -1) {
+        this.slots[this._currentSlotIndex]._isEmpty = true;
+        this.currentScene.updateMonsterFieldState(this._currentSlotIndex, null);
+      }
+      fromLocation = 'field';
+    } else {
+      // Coming from bench
       this.currentScene.monsterBenchCurrentSize--;
       this.currentScene.updateMonsterBenchPosition(this._benchPositionIndex, -1, this);
       this._benchPositionIndex = -1;
+      fromLocation = 'bench';
     }
 
     this.setPosition(slot.x, slot.y);
     this._mostRecentValidPosition = { x: slot.x, y: slot.y };
+    this._currentSlotIndex = slotIndex; // Update the current slot index
     slot._isEmpty = false;
     this.currentScene.updateMonsterFieldState(slotIndex, this);
     this.toggleActive(true);
+    this.currentScene.gameState.moveUnit(this, fromLocation, 'field');
   }
 
   /**
@@ -54,6 +78,8 @@ export default class Monster extends Unit {
       }
       this.currentScene.monsterBenchCurrentSize++;
       this.toggleActive(false);
+      // Update GameState - moving from field to bench
+      this.currentScene.gameState.moveUnit(this, 'field', 'bench');
     }
 
     // Find first available bench position
@@ -76,7 +102,8 @@ export default class Monster extends Unit {
     const benchHeight = this.bench.height;
     const benchTop = this.bench.y - benchHeight / 2;
     const benchFillRatio = this._benchPositionIndex / this.currentScene.monsterBenchMaxSize;
-    return benchTop + benchFillRatio * benchHeight;
+    const verticalOffset = 40; // Add 20 pixels to shift units down
+    return benchTop + benchFillRatio * benchHeight + verticalOffset;
   }
 
   /**
@@ -91,5 +118,22 @@ export default class Monster extends Unit {
    */
   deathAffects() {
     this.currentScene.currencyBank.addRed(this._value);
+  }
+
+  canAttack() {
+    if (this._attackCharge >= this._attackTime) {
+      this._attackCharge = 0;
+      // Calculate imp damage bonus if this is an imp
+      if (this._unitName === 'imp') {
+        const impCount = this.currentScene.monsterArray.filter(
+          (monster) => monster._unitName === 'imp' && monster._isActive
+        ).length;
+        // Each imp beyond the first adds 20% damage
+        const damageBonus = 1.0 + (impCount - 1) * 0.2;
+        return this._baseDamage * damageBonus;
+      }
+      return this._baseDamage;
+    }
+    return 0;
   }
 }

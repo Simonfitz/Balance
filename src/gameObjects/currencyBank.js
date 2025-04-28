@@ -32,8 +32,6 @@ export default class CurrencyBank extends Phaser.Physics.Arcade.Sprite {
     let red = Math.min(Math.floor((150 * this.redBank) / this.bankLimit), 50);
     let blue = Math.min(Math.floor((150 * this.blueBank) / this.bankLimit), 50);
     let green = Math.floor(Math.min(5.0, blue / 2.0 + red / 5.0));
-    console.log('RGB: ' + red + ', ' + green + ', ' + blue);
-    console.log(this.redBank + ':' + this.blueBank);
     //let tint = 65536*red+blue+256*Math.max(Math.floor((blue)/(red+4)),0)
     //let ratio = .3;
     //let red = Math.floor(ratio*ratio*50);

@@ -1,5 +1,6 @@
 import Unit from './unit.js';
 import jsonData from '../../assets/resources/unit_specs/hero.json' with { type: 'json' };
+import { MageBehavior } from './behaviors/MageBehavior.js';
 
 export default class Hero extends Unit {
   constructor(scene, x, y, texture, frame, unitName) {
@@ -9,6 +10,17 @@ export default class Hero extends Unit {
     this.bench = scene.heroBench;
     this.slots = scene.heroSlots;
     this.currentScene = scene;
+
+    // Set unit-specific behavior
+    switch (unitName) {
+      case 'mage':
+        this.setBehavior(new MageBehavior());
+        break;
+      // Add other hero behaviors here
+      default:
+        // Keep default behavior
+        break;
+    }
 
     // Then load stats
     this._unitBaseStats = jsonData[unitName];
@@ -26,17 +38,30 @@ export default class Hero extends Unit {
     const slotIndex = this.slots.indexOf(slot);
     if (slotIndex === -1) return;
 
-    if (!this._isActive) {
+    let fromLocation = '';
+    // If already on the field, mark the current slot as empty
+    if (this._isActive) {
+      if (this._currentSlotIndex !== -1) {
+        this.slots[this._currentSlotIndex]._isEmpty = true;
+        this.currentScene.updateHeroFieldState(this._currentSlotIndex, null);
+      }
+      fromLocation = 'field';
+    } else {
+      // Coming from bench
       this.currentScene.heroBenchCurrentSize--;
       this.currentScene.updateHeroBenchPosition(this._benchPositionIndex, -1, this);
       this._benchPositionIndex = -1;
+      fromLocation = 'bench';
     }
 
+    // Update the new position and slot state
     this.setPosition(slot.x, slot.y);
     this._mostRecentValidPosition = { x: slot.x, y: slot.y };
+    this._currentSlotIndex = slotIndex; // Update the current slot index
     slot._isEmpty = false;
     this.currentScene.updateHeroFieldState(slotIndex, this);
     this.toggleActive(true);
+    this.currentScene.gameState.moveUnit(this, fromLocation, 'field');
   }
 
   /**
@@ -45,14 +70,16 @@ export default class Hero extends Unit {
    */
   moveToBench() {
     if (this._isActive) {
-      const slotIndex = this.slots.findIndex((slot) => slot.x === this.x && slot.y === this.y);
-      if (slotIndex !== -1) {
+      console.log('Moving hero to bench');
+      if (this._currentSlotIndex !== -1) {
         // Mark the slot as empty and update field state
-        this.slots[slotIndex]._isEmpty = true;
-        this.currentScene.updateHeroFieldState(slotIndex, null);
+        this.slots[this._currentSlotIndex]._isEmpty = true;
+        this.currentScene.updateHeroFieldState(this._currentSlotIndex, null);
       }
       this.currentScene.heroBenchCurrentSize++;
       this.toggleActive(false);
+      // Update GameState - moving from field to bench
+      this.currentScene.gameState.moveUnit(this, 'field', 'bench');
     }
 
     // Find first available bench position
@@ -75,7 +102,8 @@ export default class Hero extends Unit {
     const benchHeight = this.bench.height;
     const benchTop = this.bench.y - benchHeight / 2;
     const benchFillRatio = this._benchPositionIndex / this.currentScene.heroBenchMaxSize;
-    return benchTop + benchFillRatio * benchHeight;
+    const verticalOffset = 40; // Add 20 pixels to shift units down
+    return benchTop + benchFillRatio * benchHeight + verticalOffset;
   }
 
   /**

@@ -6,6 +6,7 @@ import GenerateUnitButton from '../gameObjects/generateUnitButton.js';
 import { TILE } from '../constants.js';
 import { UIManager } from '../managers/UIManager.js';
 import { CombatManager } from '../managers/CombatManager.js';
+import { GameState } from '../managers/GameState.js';
 
 export class Battleground extends Phaser.Scene {
   constructor() {
@@ -66,6 +67,7 @@ export class Battleground extends Phaser.Scene {
     const screenCenterY = this.cameras.main.height / 2;
 
     // Initialise managers
+    this.gameState = new GameState(this);
     this.uiManager = new UIManager(this);
     this.combatManager = new CombatManager(this);
 
@@ -108,14 +110,21 @@ export class Battleground extends Phaser.Scene {
    * Initialises the hero and monster benches
    */
   initialiseBenches(screenCenterX, screenCenterY) {
-    this.heroBench = this.add.tileSprite(50, screenCenterY, 0, 0, 'heroBench');
+    // Create benches with proper dimensions
+    this.heroBench = this.add.tileSprite(50, screenCenterY, 100, 400, 'heroBench');
     this.monsterBench = this.add.tileSprite(
       screenCenterX * 2 - 50,
       screenCenterY,
-      0,
-      0,
+      100,
+      400,
       'monsterBench'
     );
+
+    // Set bench properties
+    this.heroBench.setOrigin(0.5, 0.5);
+    this.monsterBench.setOrigin(0.5, 0.5);
+    this.heroBench.setScrollFactor(0);
+    this.monsterBench.setScrollFactor(0);
 
     this.heroBenchMaxSize = 5;
     this.heroBenchCurrentSize = 0;
@@ -368,28 +377,46 @@ export class Battleground extends Phaser.Scene {
   }
 
   /**
-   * Initialises a specific hero type
-   * @param {number} x - X coordinate
-   * @param {number} y - Y coordinate
-   * @param {string} heroName - Type of hero to create
-   * @returns {Hero} The created hero
+   * Initialises a hero unit at the specified position
    */
   initHero(x, y, heroName) {
+    // Check if there's space on the bench
+    if (this.heroBenchCurrentSize >= this.heroBenchMaxSize) {
+      console.error('Hero bench is full');
+      return null;
+    }
+
     const hero = new Hero(this, x, y, heroName, 0, heroName);
     this.heroArray.push(hero);
+
+    // Initialize on bench
+    this.heroBenchCurrentSize++;
+
+    // Add to game state as bench unit
+    this.gameState.addUnit(hero, 'bench');
+
     return hero;
   }
 
   /**
-   * Initialises a specific monster type
-   * @param {number} x - X coordinate
-   * @param {number} y - Y coordinate
-   * @param {string} monsterName - Type of monster to create
-   * @returns {Monster} The created monster
+   * Initialises a monster unit at the specified position
    */
   initMonster(x, y, monsterName) {
+    // Check if there's space on the bench
+    if (this.monsterBenchCurrentSize >= this.monsterBenchMaxSize) {
+      console.error('Monster bench is full');
+      return null;
+    }
+
     const monster = new Monster(this, x, y, monsterName, 0, monsterName);
     this.monsterArray.push(monster);
+
+    // Initialize on bench
+    this.monsterBenchCurrentSize++;
+
+    // Add to game state as bench unit
+    this.gameState.addUnit(monster, 'bench');
+
     return monster;
   }
 

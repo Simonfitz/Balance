@@ -59,33 +59,13 @@ export class CombatManager {
     if (!source || !target) return;
     const damage = source.canAttack();
     if (damage > 0) {
-      // Get the actual positions of the units
-      const sourcePos = { x: source.x, y: source.y };
-      const targetPos = { x: target.x, y: target.y };
-
-      // Calculate the direction vector
-      const dx = targetPos.x - sourcePos.x;
-      const dy = targetPos.y - sourcePos.y;
-
-      // Position emitter at source unit
-      source.emitter.setPosition(sourcePos.x, sourcePos.y);
-
-      // Update particle movement with proper direction
-      source.emitter.setConfig({
-        moveToX: dx,
-        moveToY: dy,
-        speed: 200, // Adjust speed as needed
-        lifespan: 200,
-        gravity: 0, // Remove gravity since we're using moveTo
-        blendMode: 'ADD',
-      });
-
-      // Start the emitter
-      source.emitter.start();
-      // Stop after a short delay
-      this.scene.time.delayedCall(200, () => source.emitter.stop());
-
-      target.takeDamage(damage);
+      // Call behavior's onAttack if it exists - this will handle projectile creation
+      if (source._behavior && source._behavior.onAttack) {
+        source._behavior.onAttack(source, target);
+      } else {
+        // If no projectile attack, apply damage directly
+        target.takeDamage(damage);
+      }
     }
   }
 }
