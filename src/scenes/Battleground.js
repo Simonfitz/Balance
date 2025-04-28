@@ -3,6 +3,7 @@ import Hero from '../gameObjects/hero.js';
 import Monster from '../gameObjects/monster.js';
 import CurrencyBank from '../gameObjects/currencyBank.js';
 import GenerateUnitButton from '../gameObjects/generateUnitButton.js';
+import MenuUpgrades from '../gameObjects/menuUpgrades.js'
 import { TILE } from '../constants.js';
 import { UIManager } from '../managers/UIManager.js';
 import { CombatManager } from '../managers/CombatManager.js';
@@ -34,6 +35,7 @@ export class Battleground extends Phaser.Scene {
     this.load.image('heroBench', 'assets/UI/bench.png');
     this.load.image('monsterBench', 'assets/UI/bench.png');
     this.load.image('bar', 'assets/UI/bar.png');
+    this.load.image('menu', 'assets/UI/menu.png');
 
     // Load particle textures
     this.load.image('flare', 'assets/misc/flare.png');
@@ -84,6 +86,7 @@ export class Battleground extends Phaser.Scene {
     // Create the rest of the game components
     this.initialisePlacementTiles(screenCenterX, screenCenterY);
     this.initialiseUnitButtons(screenCenterX, screenCenterY);
+    this.menuUpgrades = new MenuUpgrades(this, screenCenterX, screenCenterY*2.3, this.cameras.main.width*0.8, this.cameras.main.height*0.5, 'menu', 'addButton')
   }
 
   /**
